@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery Dashboard — Jay Bhutnath Agri</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="translations.js"></script>
+  <script src="server-check.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0a0e1a;font-family:Poppins,sans-serif;color:white;min-height:100vh;padding-top:56px}
+    /* ── Delivery Nav ── */
+    .d-nav{position:fixed;top:0;left:0;right:0;height:56px;background:linear-gradient(135deg,#0f172a,#1e293b);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;padding:0 24px;gap:16px;z-index:1000;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+    .d-logo{display:flex;align-items:center;gap:8px;color:white;font-weight:800;font-size:14px}
+    .d-logo span{font-size:20px}
+    .d-user{display:flex;align-items:center;gap:10px;margin-left:auto;background:rgba(234,88,12,.1);border:1px solid rgba(234,88,12,.25);border-radius:20px;padding:5px 14px 5px 8px}
+    .d-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#ea580c,#c2410c);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+    .d-name{font-size:13px;font-weight:700}
+    .d-sub{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px}
+    .btn-logout{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;margin-left:8px;transition:.2s}
+    .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+
+    /* ── Main layout ── */
+    .main{max-width:1100px;margin:0 auto;padding:32px 24px}
+    .page-title{font-size:1.8rem;font-weight:900;margin-bottom:4px}
+    .page-sub{color:rgba(255,255,255,.4);font-size:14px;margin-bottom:32px}
+
+    /* ── Stats strip ── */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+    .stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;text-align:center;position:relative;overflow:hidden}
+    .stat::before{content:'';position:absolute;inset:0;opacity:.05;border-radius:16px}
+    .stat.assigned::before{background:#ea580c}
+    .stat.transit::before{background:#2563eb}
+    .stat.delivered::before{background:#16a34a}
+    .stat.total::before{background:#7c3aed}
+    .stat-num{font-size:2rem;font-weight:900;display:block}
+    .stat-label{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-top:4px}
+
+    /* ── Delivery cards ── */
+    .section-title{font-size:14px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .delivery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+    .del-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:24px;transition:all .3s;transform-style:preserve-3d}
+    .del-card:hover{border-color:rgba(234,88,12,.35);box-shadow:0 12px 36px rgba(0,0,0,.3),0 0 0 1px rgba(234,88,12,.15);transform:translateY(-4px)}
+    .del-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+    .del-order{font-size:12px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:.5px}
+    .del-customer{font-size:1rem;font-weight:800;margin-top:2px}
+    .del-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+    .badge-assigned{background:rgba(234,88,12,.15);border:1px solid rgba(234,88,12,.3);color:#fb923c}
+    .badge-transit{background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.3);color:#60a5fa}
+    .badge-delivered{background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.3);color:#4ade80}
+    .badge-failed{background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);color:#fca5a5}
+    .del-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .del-info-item{background:rgba(255,255,255,.04);border-radius:8px;padding:9px 12px}
+    .del-info-label{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
+    .del-info-val{font-size:13px;font-weight:600}
+    .del-address{background:rgba(255,255,255,.04);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:13px;color:rgba(255,255,255,.7);line-height:1.5}
+    .del-address .addr-label{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;font-weight:700}
+    .del-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn-del{flex:1;min-width:100px;padding:9px 12px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px}
+    .btn-pickup{background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.3);color:#60a5fa}
+    .btn-transit{background:rgba(234,88,12,.2);border:1px solid rgba(234,88,12,.3);color:#fb923c}
+    .btn-done{background:rgba(22,163,74,.2);border:1px solid rgba(22,163,74,.3);color:#4ade80}
+    .btn-del:hover{filter:brightness(1.3);transform:translateY(-1px)}
+    .empty{text-align:center;padding:60px 20px;color:rgba(255,255,255,.25);grid-column:1/-1}
+    .empty i{font-size:48px;display:block;margin-bottom:16px;color:rgba(234,88,12,.2)}
+    @media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.del-info{grid-template-columns:1fr}.main{padding:20px 16px}}
+  </style>
+</head>
+<body>
+<script>
+  const _session = requireAuth(['delivery']);
+  if (!_session) throw new Error('Auth redirect');
+  window._currentSession = _session;
+</script>
+
+<!-- Nav -->
+<nav class="d-nav">
+  <div class="d-logo"><span>🚚</span> DELIVERY DASHBOARD</div>
+  <div style="font-size:11px;color:rgba(255,255,255,.25);margin-left:8px" id="todayDate"></div>
+  <div class="d-user">
+    <div class="d-avatar" id="dAvatar">D</div>
+    <div><div class="d-name" id="dName">Loading…</div><div class="d-sub" id="dVehicle">Driver</div></div>
+  </div>
+  <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+</nav>
+
+<div class="main">
+  <div class="page-title">My Deliveries</div>
+  <div class="page-sub" id="pageWelcome">Welcome back!</div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat assigned"><span class="stat-num" id="cAssigned">—</span><span class="stat-label">Assigned</span></div>
+    <div class="stat transit"><span class="stat-num" id="cTransit">—</span><span class="stat-label">In Transit</span></div>
+    <div class="stat delivered"><span class="stat-num" id="cDelivered">—</span><span class="stat-label">Delivered</span></div>
+    <div class="stat total"><span class="stat-num" id="cTotal">—</span><span class="stat-label">Total</span></div>
+  </div>
+
+  <!-- Active deliveries -->
+  <div class="section-title"><i class="fas fa-truck"></i> Active Deliveries</div>
+  <div class="delivery-grid" id="activeGrid"><div class="empty"><i class="fas fa-spinner fa-spin"></i></div></div>
+
+  <div style="margin-top:32px"></div>
+  <div class="section-title"><i class="fas fa-check-circle"></i> Completed Deliveries</div>
+  <div class="delivery-grid" id="doneGrid"><div class="empty"><i class="fas fa-spinner fa-spin"></i></div></div>
+</div>
+
+<script>
+const API = window.API_BASE || 'http://localhost:3001/api';
+const session = window._currentSession;
+const user = session?.user || {};
+
+// Populate header
+document.getElementById('dName').textContent    = user.name || '';
+document.getElementById('dAvatar').textContent  = (user.name||'D').charAt(0).toUpperCase();
+document.getElementById('dVehicle').textContent = user.vehicle_number || 'Delivery Partner';
+document.getElementById('pageWelcome').textContent = `Welcome back, ${user.name || 'Driver'}!`;
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',day:'2-digit',month:'long'});
+
+async function loadDeliveries() {
+  const headers = { 'Authorization': 'Bearer ' + session.token };
+  try {
+    const r    = await fetch(API + '/delivery-partners/me/deliveries', { headers });
+    const data = await r.json();
+    const dels = data.data || [];
+
+    const active = dels.filter(d => ['assigned','picked_up','in_transit'].includes(d.status));
+    const done   = dels.filter(d => ['delivered','failed'].includes(d.status));
+
+    // Stats
+    document.getElementById('cTotal').textContent     = dels.length;
+    document.getElementById('cAssigned').textContent  = dels.filter(d => d.status==='assigned').length;
+    document.getElementById('cTransit').textContent   = dels.filter(d => d.status==='in_transit'||d.status==='picked_up').length;
+    document.getElementById('cDelivered').textContent = dels.filter(d => d.status==='delivered').length;
+
+    document.getElementById('activeGrid').innerHTML = active.length ? active.map(renderCard).join('') : '<div class="empty"><i class="fas fa-check-circle" style="color:rgba(22,163,74,.2)"></i><p>No active deliveries right now</p></div>';
+    document.getElementById('doneGrid').innerHTML   = done.length   ? done.map(renderCard).join('')   : '<div class="empty"><i class="fas fa-history"></i><p>No completed deliveries yet</p></div>';
+  } catch(e) {
+    ['activeGrid','doneGrid'].forEach(id => document.getElementById(id).innerHTML = '<div class="empty"><i class="fas fa-exclamation-circle"></i><p>Could not load deliveries</p></div>');
+  }
+}
+
+function renderCard(d) {
+  const badges = { assigned:'<span class="del-badge badge-assigned">🚛 Assigned</span>', picked_up:'<span class="del-badge badge-transit">📦 Picked Up</span>', in_transit:'<span class="del-badge badge-transit">🚀 In Transit</span>', delivered:'<span class="del-badge badge-delivered">✅ Delivered</span>', failed:'<span class="del-badge badge-failed">❌ Failed</span>' };
+  const isActive = ['assigned','picked_up','in_transit'].includes(d.status);
+  const actions = isActive ? `
+    ${d.status==='assigned'  ? `<button class="btn-del btn-pickup" onclick="updateStatus(${d.id},'picked_up')"><i class="fas fa-box"></i> Picked Up</button>` : ''}
+    ${d.status==='picked_up' ? `<button class="btn-del btn-transit" onclick="updateStatus(${d.id},'in_transit')"><i class="fas fa-road"></i> In Transit</button>` : ''}
+    ${d.status==='in_transit'? `<button class="btn-del btn-done" onclick="updateStatus(${d.id},'delivered')"><i class="fas fa-check"></i> Delivered</button>` : ''}
+  ` : '';
+  const fmt = s => s ? new Date(s).toLocaleDateString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+  return `
+    <div class="del-card">
+      <div class="del-card-header">
+        <div><div class="del-order">Order #${d.order_id||'—'}</div><div class="del-customer">${d.delivery_address?.split(',')[0]||'Delivery'}</div></div>
+        ${badges[d.status]||''}
+      </div>
+      <div class="del-info">
+        <div class="del-info-item"><span class="del-info-label">Assigned</span><span class="del-info-val">${fmt(d.assigned_at)}</span></div>
+        ${d.delivered_at ? `<div class="del-info-item"><span class="del-info-label">Delivered</span><span class="del-info-val">${fmt(d.delivered_at)}</span></div>` : '<div class="del-info-item"><span class="del-info-label">ETA</span><span class="del-info-val">Today</span></div>'}
+      </div>
+      <div class="del-address"><span class="addr-label">📍 Pickup</span>${d.pickup_address||'Jay Bhutnath Agri, Mandvi'}</div>
+      <div class="del-address"><span class="addr-label">🎯 Deliver to</span>${d.delivery_address||'—'}</div>
+      ${d.notes ? `<div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px"><i class="fas fa-sticky-note"></i> ${d.notes}</div>` : ''}
+      ${isActive ? `<div class="del-actions">${actions}</div>` : ''}
+    </div>`;
+}
+
+async function updateStatus(id, status) {
+  try {
+    const r = await fetch(`${API}/delivery/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.token}, body: JSON.stringify({status}) });
+    const d = await r.json();
+    if(d.success) loadDeliveries();
+    else alert('Error: ' + (d.message || 'Update failed'));
+  } catch(e) { alert('Network error'); }
+}
+
+loadDeliveries();
+</script>
+</body>
+</html>

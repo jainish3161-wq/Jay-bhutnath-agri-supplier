@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — Jay Bhutnath Agri Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="translations.js"></script>
+  <script src="server-check.js"></script>
+  <style>
+    body{background:#f0fdf4;padding-top:56px}
+    .portal-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:linear-gradient(135deg,#0a1f0a,#14532d);border-bottom:1px solid rgba(255,255,255,.08);height:56px;display:flex;align-items:center;padding:0 24px;gap:20px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+    .pnav-logo{color:white;font-weight:800;font-size:14px;text-decoration:none;display:flex;align-items:center;gap:8px}
+    .pnav-links{display:flex;gap:4px;flex:1;margin-left:16px}
+    .pnav-link{color:rgba(255,255,255,.6);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;transition:.2s}
+    .pnav-link:hover,.pnav-link.active{background:rgba(255,255,255,.12);color:white}
+    .pnav-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .pnav-user{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 12px 5px 8px}
+    .pnav-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white}
+    .pnav-username{font-size:13px;font-weight:700;color:white}
+    .btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif}
+
+    .page-header{background:linear-gradient(135deg,#0a1f0a,#14532d);padding:40px 24px;color:white;text-align:center}
+    .page-header h1{font-size:2rem;font-weight:900;margin-bottom:6px}
+    .page-header p{color:rgba(255,255,255,.6);font-size:14px}
+    .main-content{max-width:640px;margin:32px auto;padding:0 24px}
+    .card{background:white;border-radius:22px;box-shadow:0 8px 32px rgba(0,0,0,.09);overflow:hidden}
+    .card-header{background:linear-gradient(135deg,#f0fdf4,#dcfce7);padding:24px 28px;border-bottom:1px solid #d1fae5}
+    .card-header h2{font-size:1.2rem;font-weight:800;color:#14532d}
+    .card-header p{font-size:13px;color:#16a34a;margin-top:2px}
+    .card-body{padding:28px}
+    .field-group{margin-bottom:18px}
+    .field-label{display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px}
+    .field-input{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;font-family:Poppins,sans-serif;color:#111827;outline:none;transition:.3s}
+    .field-input:focus{border-color:#16a34a;box-shadow:0 0 0 4px rgba(22,163,74,.08)}
+    .field-input.readonly{background:#f9fafb;color:#6b7280}
+    .btn-send{width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#15803d);color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(22,163,74,.3);transition:.2s;margin-top:8px}
+    .btn-send:hover{transform:translateY(-2px)}
+    .btn-send:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .success-msg{background:#f0fdf4;border:1.5px solid #d1fae5;border-radius:14px;padding:20px;text-align:center;font-size:14px;color:#14532d;display:none}
+    .success-msg span{font-size:32px;display:block;margin-bottom:8px}
+    .office-info{background:#f0fdf4;border:1px solid #d1fae5;border-radius:14px;padding:18px 20px;margin-top:20px}
+    .office-info h4{font-size:13px;font-weight:800;color:#14532d;margin-bottom:12px}
+    .info-row{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#374151;margin-bottom:10px}
+    .info-row:last-child{margin-bottom:0}
+    .info-row i{color:#16a34a;margin-top:2px;width:16px;flex-shrink:0}
+  </style>
+</head>
+<body>
+<script>
+  const _session = requireAuth(['farmer','trader']);
+  if (!_session) throw new Error('redirect');
+  window._currentSession = _session;
+</script>
+
+<nav class="portal-nav">
+  <a href="products.html" class="pnav-logo"><span>🌾</span> JAY BHUTNATH AGRI</a>
+  <div class="pnav-links">
+    <a href="products.html" class="pnav-link"><i class="fas fa-seedling"></i> Products</a>
+    <a href="prices.html"   class="pnav-link"><i class="fas fa-chart-line"></i> Market Prices</a>
+    <a href="order.html"    class="pnav-link"><i class="fas fa-shopping-cart"></i> Place Order</a>
+    <a href="token.html"    class="pnav-link"><i class="fas fa-ticket-alt"></i> Token</a>
+    <a href="contact.html"  class="pnav-link active"><i class="fas fa-envelope"></i> Contact</a>
+  </div>
+  <div class="pnav-right">
+    <div class="pnav-user">
+      <div class="pnav-avatar" id="navAv">?</div>
+      <span class="pnav-username" id="navNm">…</span>
+    </div>
+    <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>📩 Contact Us</h1>
+  <p>Send us a message — our team will respond within 24 hours</p>
+</div>
+
+<div class="main-content">
+  <div class="card">
+    <div class="card-header">
+      <h2>Send a Message</h2>
+      <p>We'll reply to your registered mobile number as soon as possible</p>
+    </div>
+    <div class="card-body">
+      <div class="success-msg" id="successMsg"><span>✅</span> Your message has been sent! We'll get back to you soon.</div>
+      <div id="contactForm">
+        <div class="field-group">
+          <label class="field-label">Your Name</label>
+          <input type="text" class="field-input readonly" id="cName" readonly>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Email (Optional)</label>
+          <input type="email" class="field-input" id="cEmail" placeholder="your@email.com">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Your Message</label>
+          <textarea class="field-input" id="cMessage" rows="4" placeholder="Describe your inquiry, complaint, or question..."></textarea>
+        </div>
+        <button class="btn-send" id="sendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Send Message</button>
+      </div>
+
+      <div class="office-info">
+        <h4>Office Information</h4>
+        <div class="info-row"><i class="fas fa-map-marker-alt"></i> Jay Bhutnath Agri Suppler, Mandvi, Kutch — Gujarat 370465</div>
+        <div class="info-row"><i class="fas fa-clock"></i> Monday – Saturday: 9:00 AM – 6:00 PM</div>
+        <div class="info-row"><i class="fas fa-info-circle"></i> For urgent matters, visit the office or use the token system</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.API_BASE || 'http://localhost:3001/api';
+const session = window._currentSession;
+const user = session?.user || {};
+document.getElementById('navNm').textContent = user.name || '';
+document.getElementById('navAv').textContent = (user.name||'?').charAt(0).toUpperCase();
+document.getElementById('cName').value = user.name || '';
+
+async function sendMessage() {
+  const msg = document.getElementById('cMessage').value.trim();
+  if (!msg) return alert('Please enter your message');
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+  try {
+    const r = await fetch(API + '/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+      body: JSON.stringify({ name: user.name, phone: user.phone, email: document.getElementById('cEmail').value.trim(), message: msg })
+    });
+    const d = await r.json();
+    if (d.success) { document.getElementById('contactForm').style.display = 'none'; document.getElementById('successMsg').style.display = 'block'; }
+    else { alert(d.message || 'Send failed'); }
+  } catch { alert('Network error'); }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+}
+</script>
+</body>
+</html>

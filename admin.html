@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Jay Bhutnath Agri Suppler</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="config.js"></script>
+  <script src="translations.js"></script>
+  <script src="server-check.js"></script>
+  <style>
+    /* Admin-specific overrides */
+    body { background: #f1f5f0; }
+    .admin-login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f1f0f 0%, #14532d 60%, #16a34a 100%);
+      padding: 20px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    }
+    .login-logo { text-align: center; margin-bottom: 32px; }
+    .login-logo .logo-emoji { font-size: 48px; display: block; margin-bottom: 8px; }
+    .login-logo h2 { font-size: 1.4rem; font-weight: 800; color: #14532d; margin: 0; }
+    .login-logo p { font-size: 13px; color: #6b7280; margin: 4px 0 0; }
+    .login-error { display: none; background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+
+    /* Sidebar */
+    .admin-sidebar {
+      position: fixed; left: 0; top: 0; height: 100vh; width: 260px;
+      background: linear-gradient(180deg, #0f1f0f 0%, #14532d 100%);
+      display: flex; flex-direction: column; z-index: 200; overflow-y: auto;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-brand {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      color: #4ade80;
+    }
+    .sidebar-brand .brand-logo { font-size: 28px; }
+    .sidebar-brand h2 { font-size: 14px; font-weight: 800; margin: 8px 0 2px; color: white; }
+    .sidebar-brand p { font-size: 11px; color: rgba(255,255,255,0.5); margin: 0; }
+    .sidebar-menu { flex: 1; padding: 16px 0; }
+    .sidebar-section-title { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1.5px; padding: 16px 20px 6px; }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 12px; padding: 11px 20px;
+      color: rgba(255,255,255,0.65); text-decoration: none; font-size: 14px; font-weight: 500;
+      border-left: 3px solid transparent; transition: all 0.2s; cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+    }
+    .sidebar-link i { width: 20px; text-align: center; font-size: 16px; }
+    .sidebar-link:hover { color: white; background: rgba(255,255,255,0.08); border-left-color: rgba(74,222,128,0.5); }
+    .sidebar-link.active { color: #4ade80; background: rgba(74,222,128,0.1); border-left-color: #4ade80; font-weight: 600; }
+    .sidebar-badge { margin-left: auto; background: #dc2626; color: white; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; min-width: 20px; text-align: center; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#16a34a,#4ade80); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; }
+    .sidebar-user-info strong { display: block; font-size: 13px; color: white; }
+    .sidebar-user-info small { font-size: 11px; color: rgba(255,255,255,0.5); }
+    .btn-logout { width: 100%; padding: 9px; background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.3); color: #fca5a5; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-logout:hover { background: rgba(220,38,38,0.3); }
+
+    /* Main layout */
+    .admin-main { margin-left: 260px; min-height: 100vh; background: #f1f5f0; }
+    .admin-topbar {
+      position: sticky; top: 0; background: white; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06); z-index: 100;
+    }
+    .topbar-title { font-size: 1.2rem; font-weight: 700; color: #14532d; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .topbar-time { font-size: 13px; color: #6b7280; background: #f3f4f6; padding: 6px 14px; border-radius: 8px; }
+    .topbar-visit { font-size: 13px; color: #16a34a; text-decoration: none; font-weight: 600; }
+
+    .admin-content { padding: 28px 32px; }
+
+    /* Section panels */
+    .admin-section { display: none; }
+    .admin-section.active { display: block; }
+
+    /* Stats */
+    .dash-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 20px; margin-bottom: 28px; }
+    .dash-stat-card { background: white; border-radius: 14px; padding: 22px 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid #16a34a; }
+    .dsc-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .dsc-info strong { display: block; font-size: 1.8rem; font-weight: 800; color: #14532d; line-height: 1; }
+    .dsc-info span { font-size: 12px; color: #6b7280; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .dsc-green { background: #dcfce7; color: #16a34a; border-left-color: #16a34a; }
+    .dsc-gold { background: #fef9c3; color: #ca8a04; border-left-color: #d97706; }
+    .dsc-blue { background: #dbeafe; color: #2563eb; border-left-color: #2563eb; }
+    .dsc-pink { background: #fce7f3; color: #db2777; border-left-color: #db2777; }
+    .dsc-purple { background: #ede9fe; color: #7c3aed; border-left-color: #7c3aed; }
+    .dsc-teal { background: #ccfbf1; color: #0f766e; border-left-color: #0f766e; }
+
+    /* Panel card */
+    .panel-card { background: white; border-radius: 14px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .panel-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .panel-card-title { font-size: 1rem; font-weight: 700; color: #14532d; display: flex; align-items: center; gap: 8px; }
+    .panel-card-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* Table */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th { background: #f0fdf4; color: #14532d; font-weight: 700; padding: 11px 14px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; border-bottom: 2px solid #d1fae5; }
+    tbody td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    tbody tr:hover td { background: #f9fafb; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* Badges */
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .badge-success { background: #dcfce7; color: #15803d; }
+    .badge-warning { background: #fef9c3; color: #92400e; }
+    .badge-danger { background: #fee2e2; color: #dc2626; }
+    .badge-info { background: #dbeafe; color: #1d4ed8; }
+    .badge-gray { background: #f3f4f6; color: #374151; }
+    .badge-purple { background: #ede9fe; color: #6d28d9; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: white; border-radius: 16px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.2); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #e5e7eb; }
+    .modal-header h3 { font-size: 1.1rem; font-weight: 700; color: #14532d; margin: 0; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; padding: 4px; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 10px; }
+
+    /* Form */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+    .form-control { width: 100%; padding: 10px 14px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: Poppins, sans-serif; outline: none; transition: 0.2s; box-sizing: border-box; }
+    .form-control:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+
+    /* Filters */
+    .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-btn { padding: 7px 16px; border-radius: 999px; border: 1.5px solid #d1d5db; background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #374151; }
+    .filter-btn.active { background: #16a34a; border-color: #16a34a; color: white; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+    .search-input { flex: 1; padding: 9px 14px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; font-family: Poppins, sans-serif; }
+    .search-input:focus { border-color: #16a34a; }
+
+    /* Alert */
+    .alert { padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 16px; }
+    .alert-success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .alert-error { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+
+    /* Buttons */
+    .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; font-family: Poppins, sans-serif; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; text-decoration: none; }
+    .btn-primary { background: #16a34a; color: white; }
+    .btn-primary:hover { background: #15803d; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn-danger { background: #fee2e2; color: #dc2626; }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-gold { background: #d97706; color: white; }
+    .btn-gold:hover { background: #b45309; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; }
+    .empty-state i { font-size: 48px; color: #d1fae5; margin-bottom: 16px; display: block; }
+    .empty-state h3 { color: #374151; margin: 0 0 8px; font-size: 1.1rem; }
+
+    /* Price edit table */
+    .price-input { width: 100px; padding: 6px 10px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 13px; text-align: right; }
+
+    /* Recent activity */
+    .activity-list { display: flex; flex-direction: column; gap: 12px; }
+    .activity-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: #f9fafb; border-radius: 10px; }
+    .activity-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .activity-text { flex: 1; }
+    .activity-text strong { display: block; font-size: 13px; color: #1f2937; }
+    .activity-text small { font-size: 11px; color: #6b7280; }
+    .activity-time { font-size: 11px; color: #9ca3af; white-space: nowrap; }
+
+    /* Charts (CSS only) */
+    .mini-chart { display: flex; align-items: flex-end; gap: 4px; height: 60px; }
+    .mini-bar { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, #4ade80, #16a34a); min-width: 8px; transition: 0.3s; }
+    .mini-bar:hover { background: linear-gradient(180deg, #86efac, #4ade80); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .admin-sidebar { transform: translateX(-100%); }
+      .admin-sidebar.open { transform: translateX(0); }
+      .admin-main { margin-left: 0; }
+      .admin-topbar { padding: 14px 16px; }
+      .admin-content { padding: 16px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== LOGIN SCREEN ========== -->
+<div class="admin-login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-emoji">🌾</span>
+      <h2>JAY BHUTNATH AGRI SUPPLER</h2>
+      <p data-i18n="admin.login_subtitle">Admin Panel — Secure Login</p>
+    </div>
+    <div class="login-error" id="loginError">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="loginErrorText">Invalid username or password.</span>
+    </div>
+    <form id="loginForm" onsubmit="doLogin(event)">
+      <div class="form-group">
+        <label class="form-label" for="adminUsername" data-i18n="admin.username">Username</label>
+        <input type="text" id="adminUsername" class="form-control" placeholder="admin" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="adminPassword" data-i18n="admin.password">Password</label>
+        <div style="position:relative">
+          <input type="password" id="adminPassword" class="form-control" placeholder="••••••••" autocomplete="current-password" required style="padding-right:44px">
+          <button type="button" onclick="togglePassword()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#6b7280"><i class="fas fa-eye" id="pwEyeIcon"></i></button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;justify-content:center;margin-top:8px" id="loginBtn">
+        <i class="fas fa-sign-in-alt"></i>
+        <span data-i18n="admin.login_btn">Login to Admin Panel</span>
+      </button>
+    </form>
+    <p style="text-align:center;margin-top:20px;font-size:13px;color:#6b7280">
+      <a href="index.html" style="color:#16a34a;font-weight:600"><i class="fas fa-arrow-left"></i> <span data-i18n="admin.back_to_site">Back to Website</span></a>
+    </p>
+    <div style="margin-top:20px;padding:12px;background:#f0fdf4;border-radius:8px;font-size:12px;color:#374151;text-align:center">
+      <strong>Demo:</strong> username: <code>admin</code> / password: <code>admin123</code>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ADMIN PANEL ========== -->
+<div id="adminPanel" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">🌾</div>
+      <h2>JAY BHUTNATH</h2>
+      <p>Admin Dashboard</p>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="sidebar-section-title">OVERVIEW</div>
+      <button class="sidebar-link active" onclick="showSection('dashboard')">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </button>
+
+      <div class="sidebar-section-title">OPERATIONS</div>
+      <button class="sidebar-link" onclick="showSection('orders')">
+        <i class="fas fa-shopping-cart"></i> Orders
+        <span class="sidebar-badge" id="ordersCount">0</span>
+      </button>
+      <button class="sidebar-link" onclick="showSection('tokens')">
+        <i class="fas fa-ticket-alt"></i> Tokens
+      </button>
+      <button class="sidebar-link" onclick="showSection('delivery')">
+        <i class="fas fa-truck"></i> Delivery
+      </button>
+
+      <div class="sidebar-section-title">CATALOGUE</div>
+      <button class="sidebar-link" onclick="showSection('products')">
+        <i class="fas fa-seedling"></i> Products
+      </button>
+      <button class="sidebar-link" onclick="showSection('prices')">
+        <i class="fas fa-chart-line"></i> Market Prices
+      </button>
+
+      <div class="sidebar-section-title">PEOPLE</div>
+      <button class="sidebar-link" onclick="showSection('farmer-approvals')">
+        <i class="fas fa-user-check"></i> Farmer Approvals
+        <span class="sidebar-badge" id="pendingFarmersCount" style="background:#d97706">0</span>
+      </button>
+      <button class="sidebar-link" onclick="showSection('farmers')">
+        <i class="fas fa-users"></i> All Farmers
+      </button>
+      <button class="sidebar-link" onclick="showSection('delivery-partners')">
+        <i class="fas fa-truck"></i> Delivery Partners
+      </button>
+      <button class="sidebar-link" onclick="showSection('contacts')">
+        <i class="fas fa-envelope"></i> Inquiries
+        <span class="sidebar-badge" id="contactsCount">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">A</div>
+        <div class="sidebar-user-info">
+          <strong>Admin</strong>
+          <small>Jay Bhutnath Agri</small>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <!-- Top Bar -->
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:#374151;font-size:20px;display:none" id="sidebarToggleBtn"><i class="fas fa-bars"></i></button>
+        <span class="topbar-title" id="pageTitle">Dashboard</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="topbar-time" id="currentTime"></span>
+        <a href="index.html" class="topbar-visit" target="_blank">
+          <i class="fas fa-external-link-alt"></i> View Site
+        </a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ========== DASHBOARD ========== -->
+      <div class="admin-section active" id="section-dashboard">
+        <div class="dash-stats" id="dashStats">
+          <div class="dash-stat-card">
+            <div class="dsc-icon dsc-green"><i class="fas fa-shopping-cart"></i></div>
+            <div class="dsc-info"><strong id="stat-orders">—</strong><span>Total Orders</span></div>
+          </div>
+          <div class="dash-stat-card" style="border-left-color:#d97706">
+            <div class="dsc-icon dsc-gold"><i class="fas fa-clock"></i></div>
+            <div class="dsc-info"><strong id="stat-pending">—</strong><span>Pending Orders</span></div>
+          </div>
+          <div class="dash-stat-card" style="border-left-color:#2563eb">
+            <div class="dsc-icon dsc-blue"><i class="fas fa-users"></i></div>
+            <div class="dsc-info"><strong id="stat-farmers">—</strong><span>Registered Farmers</span></div>
+          </div>
+          <div class="dash-stat-card" style="border-left-color:#db2777">
+            <div class="dsc-icon dsc-pink"><i class="fas fa-envelope"></i></div>
+            <div class="dsc-info"><strong id="stat-contacts">—</strong><span>New Inquiries</span></div>
+          </div>
+          <div class="dash-stat-card" style="border-left-color:#7c3aed">
+            <div class="dsc-icon dsc-purple"><i class="fas fa-ticket-alt"></i></div>
+            <div class="dsc-info"><strong id="stat-tokens">—</strong><span>Today's Tokens</span></div>
+          </div>
+          <div class="dash-stat-card" style="border-left-color:#0f766e">
+            <div class="dsc-icon dsc-teal"><i class="fas fa-truck"></i></div>
+            <div class="dsc-info"><strong id="stat-deliveries">—</strong><span>Active Deliveries</span></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+          <!-- Recent Orders -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <span class="panel-card-title"><i class="fas fa-shopping-cart"></i> Recent Orders</span>
+              <button class="btn btn-secondary btn-sm" onclick="showSection('orders')">View All</button>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr><th>Order #</th><th>Customer</th><th>Product</th><th>Amount</th><th>Status</th></tr>
+                </thead>
+                <tbody id="recentOrdersBody">
+                  <tr><td colspan="5" class="empty-state" style="padding:30px"><i class="fas fa-spinner fa-spin" style="font-size:24px;color:#d1fae5"></i> Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <span class="panel-card-title"><i class="fas fa-bell"></i> Recent Activity</span>
+            </div>
+            <div class="activity-list" id="activityList">
+              <div class="activity-item">
+                <div class="activity-icon" style="background:#dcfce7"><span>🌾</span></div>
+                <div class="activity-text"><strong>Admin panel loaded</strong><small>Ready to manage operations</small></div>
+                <div class="activity-time">Now</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== ORDERS ========== -->
+      <div class="admin-section" id="section-orders">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <span class="panel-card-title"><i class="fas fa-shopping-cart"></i> All Orders</span>
+            <div class="panel-card-actions">
+              <select id="orderStatusFilter" class="form-control" style="width:160px;padding:8px 12px" onchange="filterOrders()">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="processing">Processing</option>
+                <option value="dispatched">Dispatched</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="loadOrders()">
+                <i class="fas fa-sync"></i> Refresh
+              </button>
+            </div>
+          </div>
+          <div class="search-bar">
+            <input type="text" class="search-input" id="orderSearch" placeholder="Search by order #, customer name, phone..." oninput="filterOrders()">
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order #</th><th>Date</th><th>Customer</th><th>Phone</th>
+                  <th>Product</th><th>Qty (kg)</th><th>Amount</th><th>Payment</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody">
+                <tr><td colspan="10"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading orders...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== TOKENS ========== -->
+      <div class="admin-section" id="section-tokens">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+          <div class="panel-card" style="text-align:center">
+            <h4 style="color:#14532d;margin:0 0 12px">Currently Serving</h4>
+            <div style="font-size:72px;font-weight:900;color:#16a34a;line-height:1" id="servingTokenDisplay">—</div>
+            <p style="color:#6b7280;font-size:13px;margin:8px 0 16px">Token Number</p>
+            <div style="display:flex;gap:10px;justify-content:center">
+              <button class="btn btn-secondary" onclick="callNextToken()"><i class="fas fa-chevron-right"></i> Next Token</button>
+              <button class="btn btn-primary" onclick="loadTokens()"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+          </div>
+          <div class="panel-card">
+            <h4 style="color:#14532d;margin:0 0 16px">Today's Stats</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="background:#f0fdf4;border-radius:10px;padding:16px;text-align:center">
+                <div style="font-size:1.8rem;font-weight:800;color:#16a34a" id="tk-total">0</div>
+                <div style="font-size:12px;color:#6b7280">Total Issued</div>
+              </div>
+              <div style="background:#fef9c3;border-radius:10px;padding:16px;text-align:center">
+                <div style="font-size:1.8rem;font-weight:800;color:#92400e" id="tk-waiting">0</div>
+                <div style="font-size:12px;color:#6b7280">Waiting</div>
+              </div>
+              <div style="background:#dcfce7;border-radius:10px;padding:16px;text-align:center">
+                <div style="font-size:1.8rem;font-weight:800;color:#15803d" id="tk-served">0</div>
+                <div style="font-size:12px;color:#6b7280">Served</div>
+              </div>
+              <div style="background:#dbeafe;border-radius:10px;padding:16px;text-align:center">
+                <div style="font-size:1.8rem;font-weight:800;color:#1d4ed8" id="tk-avg">~5m</div>
+                <div style="font-size:12px;color:#6b7280">Avg. Wait</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <span class="panel-card-title"><i class="fas fa-list"></i> Today's Token Queue</span>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Token</th><th>Customer</th><th>Phone</th><th>Purpose</th><th>Time</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody id="tokensTableBody">
+                <tr><td colspan="8"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading tokens...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== DELIVERY ========== -->
+      <div class="admin-section" id="section-delivery">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <span class="panel-card-title"><i class="fas fa-truck"></i> Delivery Management</span>
+            <button class="btn btn-primary btn-sm" onclick="openNewDeliveryModal()">
+              <i class="fas fa-plus"></i> Assign Delivery
+            </button>
+          </div>
+          <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterDelivery('',this)">All</button>
+            <button class="filter-btn" onclick="filterDelivery('assigned',this)">Assigned</button>
+            <button class="filter-btn" onclick="filterDelivery('picked_up',this)">Picked Up</button>
+            <button class="filter-btn" onclick="filterDelivery('in_transit',this)">In Transit</button>
+            <button class="filter-btn" onclick="filterDelivery('delivered',this)">Delivered</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>ID</th><th>Order #</th><th>Driver</th><th>Phone</th><th>Delivery Address</th><th>Assigned</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody id="deliveryTableBody">
+                <tr><td colspan="8"><div class="empty-state"><i class="fas fa-truck" style="font-size:36px;color:#d1fae5;display:block;margin-bottom:12px"></i><p>No deliveries yet</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== PRODUCTS ========== -->
+      <div class="admin-section" id="section-products">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <span class="panel-card-title"><i class="fas fa-seedling"></i> Product Management</span>
+            <button class="btn btn-primary btn-sm" onclick="openAddProductModal()">
+              <i class="fas fa-plus"></i> Add Product
+            </button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>Emoji</th><th>Name</th><th>Gujarati Name</th><th>Category</th><th>Price/kg</th><th>Price/quintal</th><th>Min Order</th><th>Stock</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="productsTableBody">
+                <tr><td colspan="9"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading products...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== PRICES ========== -->
+      <div class="admin-section" id="section-prices">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <span class="panel-card-title"><i class="fas fa-chart-line"></i> Today's Market Prices</span>
+            <div class="panel-card-actions">
+              <input type="date" id="priceDate" class="form-control" style="width:160px;padding:8px" onchange="loadPrices()">
+              <button class="btn btn-primary btn-sm" onclick="savePrices()">
+                <i class="fas fa-save"></i> Save Prices
+              </button>
+            </div>
+          </div>
+          <div class="alert alert-success" id="pricesSavedAlert" style="display:none">
+            <i class="fas fa-check-circle"></i> Prices saved successfully!
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>Commodity</th><th>Gujarati Name</th><th>Category</th><th>Price/quintal (₹)</th><th>Change (±)</th><th>Market</th><th>Last Updated</th></tr>
+              </thead>
+              <tbody id="pricesTableBody">
+                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading prices...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== FARMERS ========== -->
+      <div class="admin-section" id="section-farmers">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <span class="panel-card-title"><i class="fas fa-users"></i> Registered Farmers</span>
+            <button class="btn btn-secondary btn-sm" onclick="exportFarmers()">
+              <i class="fas fa-download"></i> Export CSV
+            </button>
+          </div>
+          <div class="search-bar">
+            <input type="text" class="search-input" id="farmerSearch" placeholder="Search by name, village, phone..." oninput="filterFarmers()">
+            <select class="form-control" style="width:160px;padding:8px" id="farmerCropFilter" onchange="filterFarmers()">
+              <option value="">All Crops</option>
+              <option>Wheat</option><option>Groundnut</option><option>Castor</option>
+              <option>Sesame</option><option>Bajra</option><option>Cotton</option>
+            </select>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Name</th><th>Phone</th><th>Village</th><th>District</th><th>Crops</th><th>Land (acres)</th><th>Registered</th><th>Action</th></tr>
+              </thead>
+              <tbody id="farmersTableBody">
+                <tr><td colspan="9"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading farmers...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== CONTACTS ========== -->
+      <div class="admin-section" id="section-contacts">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <span class="panel-card-title"><i class="fas fa-envelope"></i> Contact Inquiries</span>
+            <div class="panel-card-actions">
+              <select id="contactStatusFilter" class="form-control" style="width:140px;padding:8px" onchange="loadContacts()">
+                <option value="">All</option>
+                <option value="unread">Unread</option>
+                <option value="read">Read</option>
+                <option value="replied">Replied</option>
+              </select>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Name</th><th>Phone</th><th>Email</th><th>Message</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="contactsTableBody">
+                <tr><td colspan="8"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading inquiries...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== FARMER APPROVALS ========== -->
+      <div class="admin-section" id="section-farmer-approvals">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <span class="panel-card-title"><i class="fas fa-user-check"></i> Farmer Approval Requests</span>
+            <div class="panel-card-actions">
+              <select id="farmerApprovalFilter" class="form-control" style="width:150px;padding:8px" onchange="loadFarmerApprovals()">
+                <option value="pending">⏳ Pending</option>
+                <option value="approved">✅ Approved</option>
+                <option value="rejected">❌ Rejected</option>
+                <option value="">All</option>
+              </select>
+              <button class="btn btn-secondary btn-sm" onclick="loadFarmerApprovals()"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+          </div>
+          <div id="approvalAlert" style="display:none" class="alert alert-success"><i class="fas fa-check-circle"></i> <span id="approvalAlertText"></span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Name</th><th>Phone</th><th>Village</th><th>District</th><th>Crops</th><th>Land</th><th>Role</th><th>Status</th><th>Registered</th><th style="min-width:160px">Actions</th></tr>
+              </thead>
+              <tbody id="approvalTableBody">
+                <tr><td colspan="11"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== DELIVERY PARTNERS ========== -->
+      <div class="admin-section" id="section-delivery-partners">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <span class="panel-card-title"><i class="fas fa-truck"></i> Delivery Partners</span>
+            <div class="panel-card-actions">
+              <select id="dpStatusFilter" class="form-control" style="width:140px;padding:8px" onchange="loadDeliveryPartners()">
+                <option value="">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openAddPartnerModal()"><i class="fas fa-plus"></i> Add Partner</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Name</th><th>Phone</th><th>Vehicle</th><th>Area</th><th>Total Del.</th><th>Active Del.</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="dpTableBody">
+                <tr><td colspan="9"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /admin-content -->
+  </main>
+</div><!-- /adminPanel -->
+
+<!-- ========== MODALS ========== -->
+
+<!-- Order Status Modal -->
+<div class="modal-overlay" id="orderStatusModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Update Order Status</h3>
+      <button class="modal-close" onclick="closeModal('orderStatusModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p id="orderStatusInfo" style="font-size:14px;color:#374151;margin-bottom:16px"></p>
+      <div class="form-group">
+        <label class="form-label">New Status</label>
+        <select class="form-control" id="newOrderStatus">
+          <option value="pending">🕐 Pending</option>
+          <option value="confirmed">✅ Confirmed</option>
+          <option value="processing">⚙️ Processing</option>
+          <option value="dispatched">🚛 Dispatched</option>
+          <option value="delivered">✅ Delivered</option>
+          <option value="cancelled">❌ Cancelled</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Driver Name (if dispatched)</label>
+        <input type="text" class="form-control" id="orderDriverName" placeholder="Driver name">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('orderStatusModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrderStatus()">Update Status</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Product Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="productModalTitle">Add Product</h3>
+      <button class="modal-close" onclick="closeModal('productModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editProductId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Product Name (English)</label>
+          <input type="text" class="form-control" id="pName" placeholder="e.g. Lokwan Wheat" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Product Name (Gujarati)</label>
+          <input type="text" class="form-control" id="pNameGu" placeholder="e.g. લોકવન ઘઉં" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-control" id="pCategory">
+            <option>Wheat</option><option>Seeds</option><option>Feed</option><option>Flour</option><option>Oil Seeds</option><option>Pulses</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Emoji Icon</label>
+          <input type="text" class="form-control" id="pEmoji" placeholder="🌾" maxlength="4">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price per kg (₹)</label>
+          <input type="number" class="form-control" id="pPriceKg" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price per quintal (₹)</label>
+          <input type="number" class="form-control" id="pPriceQ" step="0.01" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Minimum Order (kg)</label>
+          <input type="number" class="form-control" id="pMinOrder" value="50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">In Stock</label>
+          <select class="form-control" id="pStock">
+            <option value="1">✅ Yes — In Stock</option>
+            <option value="0">❌ No — Out of Stock</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description (English)</label>
+        <textarea class="form-control" id="pDesc" rows="2" placeholder="Product description in English"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description (Gujarati)</label>
+        <textarea class="form-control" id="pDescGu" rows="2" placeholder="ગુજરાતીમાં ઉત્પાદનનું વર્ણન"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-save"></i> Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delivery Assign Modal -->
+<div class="modal-overlay" id="deliveryModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Assign Delivery</h3>
+      <button class="modal-close" onclick="closeModal('deliveryModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Select Order</label>
+        <select class="form-control" id="deliveryOrderId"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Driver Name</label>
+          <input type="text" class="form-control" id="deliveryDriver" placeholder="Driver's full name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Driver Phone</label>
+          <input type="tel" class="form-control" id="deliveryDriverPhone" placeholder="10-digit mobile">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vehicle Number</label>
+        <input type="text" class="form-control" id="deliveryVehicle" placeholder="GJ-12 AB 1234">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Delivery Address</label>
+        <textarea class="form-control" id="deliveryAddress" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <input type="text" class="form-control" id="deliveryNotes" placeholder="Any special instructions">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('deliveryModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDelivery()"><i class="fas fa-truck"></i> Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Delivery Partner Modal -->
+<div class="modal-overlay" id="addPartnerModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="partnerModalTitle">Add Delivery Partner</h3>
+      <button class="modal-close" onclick="closeModal('addPartnerModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editPartnerId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name <span style="color:#dc2626">*</span></label>
+          <input type="text" class="form-control" id="dpName" placeholder="Driver's full name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mobile Number <span style="color:#dc2626">*</span></label>
+          <input type="tel" class="form-control" id="dpPhone" placeholder="10-digit mobile" maxlength="10">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">4-Digit PIN <span style="color:#dc2626">*</span></label>
+          <input type="text" class="form-control" id="dpPin" placeholder="e.g. 1234" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vehicle Number</label>
+          <input type="text" class="form-control" id="dpVehicle" placeholder="GJ-12 AB 1234">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Area / Zone</label>
+          <input type="text" class="form-control" id="dpArea" placeholder="e.g. Mandvi, Bhuj">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" id="dpStatus">
+            <option value="active">✅ Active</option>
+            <option value="inactive">⛔ Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e">
+        <i class="fas fa-info-circle"></i> The partner will use their phone number + this PIN to login to the delivery dashboard.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addPartnerModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDeliveryPartner()"><i class="fas fa-save"></i> Save Partner</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Farmer Modal -->
+<div class="modal-overlay" id="rejectFarmerModal">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header">
+      <h3>Reject Registration</h3>
+      <button class="modal-close" onclick="closeModal('rejectFarmerModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p id="rejectFarmerInfo" style="font-size:14px;color:#374151;margin-bottom:12px"></p>
+      <div class="form-group">
+        <label class="form-label">Reason for Rejection (Optional)</label>
+        <textarea class="form-control" id="rejectReason" rows="3" placeholder="e.g. Duplicate registration, Invalid details..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('rejectFarmerModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmRejectFarmer()"><i class="fas fa-times-circle"></i> Reject Registration</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.API_BASE || 'http://localhost:3001/api';
+let adminToken = localStorage.getItem('adminToken');
+let currentEditOrderId = null;
+let allOrders = [], allFarmers = [], allContacts = [];
+
+// ─── CLOCK ───────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('currentTime').textContent =
+    now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
+    ' | ' + now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── AUTH ────────────────────────────────────────────────
+async function doLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+
+  const username = document.getElementById('adminUsername').value;
+  const password = document.getElementById('adminPassword').value;
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      adminToken = data.token;
+      localStorage.setItem('adminToken', adminToken);
+      showAdminPanel();
+    } else {
+      showLoginError(data.message || 'Invalid username or password.');
+    }
+  } catch (err) {
+    // Demo fallback when backend not running
+    if (username === 'admin' && password === 'admin123') {
+      adminToken = 'demo-token';
+      localStorage.setItem('adminToken', adminToken);
+      showAdminPanel();
+    } else {
+      showLoginError('Invalid username or password.');
+    }
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Admin Panel';
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  document.getElementById('loginErrorText').textContent = msg;
+  el.style.display = 'flex';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function showAdminPanel() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  if (window.innerWidth < 900) {
+    document.getElementById('sidebarToggleBtn').style.display = 'block';
+  }
+  loadDashboard();
+}
+
+function doLogout() {
+  fetch(`${API}/auth/logout`, { method: 'POST' }).catch(() => {});
+  localStorage.removeItem('adminToken');
+  adminToken = null;
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function togglePassword() {
+  const pw = document.getElementById('adminPassword');
+  const icon = document.getElementById('pwEyeIcon');
+  if (pw.type === 'password') { pw.type = 'text'; icon.className = 'fas fa-eye-slash'; }
+  else { pw.type = 'password'; icon.className = 'fas fa-eye'; }
+}
+
+// Auto-login if token exists
+if (adminToken) showAdminPanel();
+
+// ─── NAVIGATION ──────────────────────────────────────────
+function showSection(name) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  const sectionEl = document.getElementById(`section-${name}`);
+  if (sectionEl) sectionEl.classList.add('active');
+
+  const titles = {
+    dashboard: 'Dashboard', orders: 'Orders', tokens: 'Token Queue',
+    delivery: 'Delivery Management', products: 'Product Management',
+    prices: 'Market Prices', farmers: 'All Farmers', contacts: 'Inquiries',
+    'farmer-approvals': 'Farmer & Trader Approval Requests',
+    'delivery-partners': 'Delivery Partner Management'
+  };
+  const titleEl = document.getElementById('pageTitle');
+  if (titleEl) titleEl.textContent = titles[name] || name;
+
+  // highlight sidebar button
+  document.querySelectorAll('.sidebar-link').forEach(btn => {
+    if (btn.textContent.toLowerCase().includes(name.replace(/-/g,' ').replace(/_/g,' ')) ||
+        (name === 'dashboard' && btn.textContent.includes('Dashboard'))) {
+      btn.classList.add('active');
+    }
+  });
+
+  const loaders = {
+    orders: loadOrders, tokens: loadTokens, delivery: loadDelivery,
+    products: loadProducts, prices: loadPrices, farmers: loadFarmers,
+    contacts: loadContacts,
+    'farmer-approvals': loadFarmerApprovals,
+    'delivery-partners': loadDeliveryPartners
+  };
+  if (loaders[name]) loaders[name]();
+}
+
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('open');
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [orders, farmers, contacts, tokens, delivery] = await Promise.allSettled([
+      apiGet('/orders'), apiGet('/farmers'), apiGet('/contact'),
+      apiGet('/tokens/stats'), apiGet('/delivery/stats')
+    ]);
+    const o = orders.value?.data || [];
+    const f = farmers.value?.data || [];
+    const c = contacts.value?.data || [];
+    const t = tokens.value?.data || {};
+    const d = delivery.value?.data || {};
+
+    const pendingOrders = o.filter(x => x.status === 'pending').length;
+    const pendingFarmers = f.filter(x => x.status === 'pending').length;
+    const unread = c.filter(x => x.status === 'unread').length;
+
+    document.getElementById('stat-orders').textContent = o.length;
+    document.getElementById('stat-pending').textContent = pendingOrders;
+    document.getElementById('stat-farmers').textContent = f.length;
+    document.getElementById('stat-contacts').textContent = unread;
+    document.getElementById('stat-tokens').textContent = t.total_today || 0;
+    document.getElementById('stat-deliveries').textContent = d.in_transit || 0;
+    document.getElementById('ordersCount').textContent = pendingOrders;
+    document.getElementById('contactsCount').textContent = unread;
+    // Update pending farmers badge in sidebar
+    const pfBadge = document.getElementById('pendingFarmersCount');
+    if (pfBadge) pfBadge.textContent = pendingFarmers;
+
+    // Recent orders
+    const recent = o.slice(0, 6);
+    document.getElementById('recentOrdersBody').innerHTML = recent.length ? recent.map(ord => `
+      <tr>
+        <td><strong style="color:#16a34a">${ord.order_number}</strong></td>
+        <td>${ord.customer_name}</td>
+        <td>${ord.product_name || '—'}</td>
+        <td><strong>₹${Number(ord.total_amount||0).toLocaleString('en-IN')}</strong></td>
+        <td>${statusBadge(ord.status)}</td>
+      </tr>`).join('') :
+      '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-inbox"></i><p>No orders yet</p></div></td></tr>';
+
+  } catch(e) {
+    console.error('Dashboard load error:', e);
+    document.getElementById('stat-orders').textContent = '—';
+  }
+}
+
+// ─── ORDERS ──────────────────────────────────────────────
+async function loadOrders() {
+  try {
+    const data = await apiGet('/orders');
+    allOrders = data.data || [];
+    renderOrders(allOrders);
+  } catch(e) {
+    document.getElementById('ordersTableBody').innerHTML = errorRow(10, 'Could not load orders. Is the backend running?');
+  }
+}
+
+function renderOrders(orders) {
+  const tbody = document.getElementById('ordersTableBody');
+  if (!orders.length) { tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="fas fa-inbox"></i><h3>No orders found</h3></div></td></tr>`; return; }
+  tbody.innerHTML = orders.map(o => `
+    <tr>
+      <td><strong style="color:#16a34a;font-size:13px">${o.order_number}</strong></td>
+      <td style="font-size:12px;color:#6b7280">${formatDate(o.created_at)}</td>
+      <td><strong>${o.customer_name}</strong><br><small style="color:#6b7280">${o.customer_village||''}</small></td>
+      <td><a href="tel:${o.customer_phone}" style="color:#16a34a">${o.customer_phone}</a></td>
+      <td>${o.product_name||'—'}</td>
+      <td><strong>${o.quantity_kg} kg</strong></td>
+      <td><strong>₹${Number(o.total_amount||0).toLocaleString('en-IN')}</strong></td>
+      <td><span class="badge badge-gray">${o.payment_method}</span></td>
+      <td>${statusBadge(o.status)}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-secondary btn-sm" onclick="openOrderStatus(${o.id},'${o.order_number}','${o.status}')"><i class="fas fa-edit"></i></button>
+          <a href="https://wa.me/${o.customer_phone}?text=Hello+${encodeURIComponent(o.customer_name)}%2C+your+order+${o.order_number}+status+is+${o.status}" target="_blank" class="btn btn-sm" style="background:#dcfce7;color:#16a34a"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterOrders() {
+  const status = document.getElementById('orderStatusFilter').value;
+  const search = document.getElementById('orderSearch').value.toLowerCase();
+  const filtered = allOrders.filter(o =>
+    (!status || o.status === status) &&
+    (!search || o.order_number.toLowerCase().includes(search) || o.customer_name.toLowerCase().includes(search) || (o.customer_phone||'').includes(search))
+  );
+  renderOrders(filtered);
+}
+
+function openOrderStatus(id, num, currentStatus) {
+  currentEditOrderId = id;
+  document.getElementById('orderStatusInfo').textContent = `Order: ${num}`;
+  document.getElementById('newOrderStatus').value = currentStatus;
+  document.getElementById('orderStatusModal').classList.add('open');
+}
+
+async function saveOrderStatus() {
+  const status = document.getElementById('newOrderStatus').value;
+  const driverName = document.getElementById('orderDriverName').value;
+  try {
+    await apiPut(`/orders/${currentEditOrderId}/status`, { status, driver_name: driverName });
+    closeModal('orderStatusModal');
+    showToast('Order status updated!', 'success');
+    loadOrders(); loadDashboard();
+  } catch(e) { showToast('Failed to update status', 'error'); }
+}
+
+// ─── TOKENS ──────────────────────────────────────────────
+async function loadTokens() {
+  try {
+    const [todayData, stats] = await Promise.all([apiGet('/tokens/today'), apiGet('/tokens/stats')]);
+    const tokens = todayData.data || [];
+    const s = stats.data || {};
+
+    document.getElementById('tk-total').textContent = s.total_today || tokens.length;
+    document.getElementById('tk-waiting').textContent = s.waiting || tokens.filter(t=>t.status==='waiting').length;
+    document.getElementById('tk-served').textContent = s.served || tokens.filter(t=>t.status==='served').length;
+
+    const serving = tokens.find(t => t.status === 'serving');
+    document.getElementById('servingTokenDisplay').textContent = serving ? serving.token_number : (tokens.filter(t=>t.status==='served').length || '0');
+
+    const tbody = document.getElementById('tokensTableBody');
+    tbody.innerHTML = tokens.length ? tokens.map((t,i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td><strong style="font-size:18px;color:#16a34a">${t.token_number}</strong></td>
+        <td>${t.customer_name}</td>
+        <td>${t.customer_phone||'—'}</td>
+        <td><span class="badge badge-gray">${t.purpose}</span></td>
+        <td style="font-size:12px">${formatTime(t.created_at)}</td>
+        <td>${tokenBadge(t.status)}</td>
+        <td>
+          <select class="form-control" style="width:110px;padding:5px" onchange="updateTokenStatus(${t.id}, this.value)">
+            <option value="waiting" ${t.status==='waiting'?'selected':''}>Waiting</option>
+            <option value="serving" ${t.status==='serving'?'selected':''}>Serving</option>
+            <option value="served" ${t.status==='served'?'selected':''}>Served</option>
+            <option value="skipped" ${t.status==='skipped'?'selected':''}>Skipped</option>
+          </select>
+        </td>
+      </tr>`).join('') :
+      `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-ticket-alt"></i><h3>No tokens today</h3></div></td></tr>`;
+  } catch(e) {
+    document.getElementById('tokensTableBody').innerHTML = errorRow(8, 'Could not load tokens.');
+  }
+}
+
+async function updateTokenStatus(id, status) {
+  try { await apiPut(`/tokens/${id}/status`, { status }); showToast('Token updated', 'success'); loadTokens(); }
+  catch(e) { showToast('Error', 'error'); }
+}
+
+async function callNextToken() {
+  try {
+    // 1. Mark any currently 'serving' tokens as 'served'
+    const allTodayRes = await apiGet('/tokens/today');
+    const tokens = allTodayRes.data || [];
+    const serving = tokens.find(t => t.status === 'serving');
+    if (serving) await apiPut(`/tokens/${serving.id}/status`, { status: 'served' });
+
+    // 2. Find next waiting token
+    const waiting = tokens.filter(t => t.status === 'waiting').sort((a,b) => a.token_number - b.token_number);
+    if (!waiting.length) { showToast('No more waiting customers', 'info'); loadTokens(); return; }
+
+    // 3. Mark it as serving
+    await apiPut(`/tokens/${waiting[0].id}/status`, { status: 'serving' });
+    document.getElementById('servingTokenDisplay').textContent = waiting[0].token_number;
+    showToast(`🔔 Now serving Token #${waiting[0].token_number} — ${waiting[0].customer_name}`, 'success');
+    loadTokens();
+  } catch(e) { showToast('Error calling next token', 'error'); }
+}
+
+// ─── DELIVERY ─────────────────────────────────────────────
+async function loadDelivery() {
+  try {
+    const data = await apiGet('/delivery');
+    renderDelivery(data.data || []);
+  } catch(e) {
+    document.getElementById('deliveryTableBody').innerHTML = errorRow(8, 'Could not load deliveries.');
+  }
+}
+
+function renderDelivery(deliveries) {
+  const tbody = document.getElementById('deliveryTableBody');
+  tbody.innerHTML = deliveries.length ? deliveries.map(d => `
+    <tr>
+      <td>#${d.id}</td>
+      <td><strong>${d.order_id||'—'}</strong></td>
+      <td>${d.driver_name||'—'}</td>
+      <td><a href="tel:${d.driver_phone}" style="color:#16a34a">${d.driver_phone||'—'}</a></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.delivery_address}</td>
+      <td style="font-size:12px">${formatDate(d.assigned_at)}</td>
+      <td>${deliveryBadge(d.status)}</td>
+      <td>
+        <select class="form-control" style="width:120px;padding:5px" onchange="updateDeliveryStatus(${d.id}, this.value)">
+          <option value="assigned" ${d.status==='assigned'?'selected':''}>Assigned</option>
+          <option value="picked_up" ${d.status==='picked_up'?'selected':''}>Picked Up</option>
+          <option value="in_transit" ${d.status==='in_transit'?'selected':''}>In Transit</option>
+          <option value="delivered" ${d.status==='delivered'?'selected':''}>Delivered</option>
+          <option value="failed" ${d.status==='failed'?'selected':''}>Failed</option>
+        </select>
+      </td>
+    </tr>`).join('') :
+    `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-truck"></i><h3>No deliveries</h3></div></td></tr>`;
+}
+
+function filterDelivery(status, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  apiGet(`/delivery${status?'?status='+status:''}`).then(d => renderDelivery(d.data||[])).catch(()=>{});
+}
+
+async function updateDeliveryStatus(id, status) {
+  try { await apiPut(`/delivery/${id}/status`, { status }); showToast('Delivery updated', 'success'); }
+  catch(e) { showToast('Error updating delivery', 'error'); }
+}
+
+function openNewDeliveryModal() {
+  // populate orders dropdown
+  apiGet('/orders?status=confirmed').then(d => {
+    const sel = document.getElementById('deliveryOrderId');
+    sel.innerHTML = (d.data||[]).map(o => `<option value="${o.id}">${o.order_number} — ${o.customer_name}</option>`).join('') || '<option>No confirmed orders</option>';
+  }).catch(()=>{});
+  document.getElementById('deliveryModal').classList.add('open');
+}
+
+async function saveDelivery() {
+  const payload = {
+    order_id: document.getElementById('deliveryOrderId').value,
+    driver_name: document.getElementById('deliveryDriver').value,
+    driver_phone: document.getElementById('deliveryDriverPhone').value,
+    vehicle_number: document.getElementById('deliveryVehicle').value,
+    delivery_address: document.getElementById('deliveryAddress').value,
+    notes: document.getElementById('deliveryNotes').value
+  };
+  try { await apiPost('/delivery', payload); closeModal('deliveryModal'); showToast('Delivery assigned!', 'success'); loadDelivery(); }
+  catch(e) { showToast('Error assigning delivery', 'error'); }
+}
+
+// ─── PRODUCTS ─────────────────────────────────────────────
+async function loadProducts() {
+  try {
+    const data = await apiGet('/products');
+    const products = data.data || [];
+    const tbody = document.getElementById('productsTableBody');
+    tbody.innerHTML = products.length ? products.map(p => `
+      <tr>
+        <td style="font-size:24px">${p.image_emoji||'🌾'}</td>
+        <td><strong>${p.name}</strong></td>
+        <td>${p.name_gu||'—'}</td>
+        <td><span class="badge badge-gray">${p.category||'—'}</span></td>
+        <td>₹${p.price_per_kg}</td>
+        <td>₹${Number(p.price_per_quintal||0).toLocaleString('en-IN')}</td>
+        <td>${p.min_order_kg} kg</td>
+        <td>${p.in_stock ? '<span class="badge badge-success">✓ In Stock</span>' : '<span class="badge badge-danger">✗ Out of Stock</span>'}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-secondary btn-sm" onclick="openEditProduct(${JSON.stringify(p).replace(/"/g,'&quot;')})"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>`).join('') :
+      `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-seedling"></i><h3>No products</h3></div></td></tr>`;
+  } catch(e) {
+    document.getElementById('productsTableBody').innerHTML = errorRow(9, 'Could not load products.');
+  }
+}
+
+function openAddProductModal() {
+  document.getElementById('productModalTitle').textContent = 'Add Product';
+  document.getElementById('editProductId').value = '';
+  ['pName','pNameGu','pPriceKg','pPriceQ','pDesc','pDescGu'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pEmoji').value = '🌾';
+  document.getElementById('pMinOrder').value = '50';
+  document.getElementById('pStock').value = '1';
+  document.getElementById('productModal').classList.add('open');
+}
+
+function openEditProduct(p) {
+  document.getElementById('productModalTitle').textContent = 'Edit Product';
+  document.getElementById('editProductId').value = p.id;
+  document.getElementById('pName').value = p.name;
+  document.getElementById('pNameGu').value = p.name_gu||'';
+  document.getElementById('pCategory').value = p.category||'Wheat';
+  document.getElementById('pEmoji').value = p.image_emoji||'🌾';
+  document.getElementById('pPriceKg').value = p.price_per_kg;
+  document.getElementById('pPriceQ').value = p.price_per_quintal;
+  document.getElementById('pMinOrder').value = p.min_order_kg||50;
+  document.getElementById('pStock').value = p.in_stock||1;
+  document.getElementById('pDesc').value = p.description||'';
+  document.getElementById('pDescGu').value = p.description_gu||'';
+  document.getElementById('productModal').classList.add('open');
+}
+
+async function saveProduct() {
+  const id = document.getElementById('editProductId').value;
+  const payload = {
+    name: document.getElementById('pName').value,
+    name_gu: document.getElementById('pNameGu').value,
+    category: document.getElementById('pCategory').value,
+    image_emoji: document.getElementById('pEmoji').value,
+    price_per_kg: parseFloat(document.getElementById('pPriceKg').value),
+    price_per_quintal: parseFloat(document.getElementById('pPriceQ').value),
+    min_order_kg: parseFloat(document.getElementById('pMinOrder').value),
+    in_stock: parseInt(document.getElementById('pStock').value),
+    description: document.getElementById('pDesc').value,
+    description_gu: document.getElementById('pDescGu').value
+  };
+  try {
+    if (id) await apiPut(`/products/${id}`, payload);
+    else await apiPost('/products', payload);
+    closeModal('productModal'); showToast('Product saved!', 'success'); loadProducts();
+  } catch(e) { showToast('Error saving product', 'error'); }
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  try { await apiDelete(`/products/${id}`); showToast('Product deleted', 'success'); loadProducts(); }
+  catch(e) { showToast('Error', 'error'); }
+}
+
+// ─── PRICES ──────────────────────────────────────────────
+async function loadPrices() {
+  const date = document.getElementById('priceDate').value || new Date().toISOString().split('T')[0];
+  try {
+    const data = await apiGet(`/prices?date=${date}`);
+    const prices = data.data || [];
+    const tbody = document.getElementById('pricesTableBody');
+    tbody.innerHTML = prices.length ? prices.map(p => `
+      <tr>
+        <td><strong>${p.product_name}</strong></td>
+        <td>${p.product_name_gu||'—'}</td>
+        <td><span class="badge badge-gray">${p.category||'—'}</span></td>
+        <td><input type="number" class="price-input" value="${p.price_per_quintal}" data-id="${p.id}" data-field="price_per_quintal"></td>
+        <td><input type="number" class="price-input" style="width:80px" value="${p.change_amount||0}" data-id="${p.id}" data-field="change_amount"></td>
+        <td>${p.market||'Mandvi Mandi'}</td>
+        <td style="font-size:12px;color:#6b7280">${formatDate(p.updated_at||p.price_date)}</td>
+      </tr>`).join('') :
+      `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-chart-line"></i><h3>No price data for this date</h3></div></td></tr>`;
+  } catch(e) {
+    document.getElementById('pricesTableBody').innerHTML = errorRow(7, 'Could not load prices.');
+  }
+}
+
+async function savePrices() {
+  const inputs = document.querySelectorAll('#pricesTableBody .price-input');
+  const updates = {};
+  inputs.forEach(inp => {
+    const id = inp.dataset.id;
+    if (!updates[id]) updates[id] = {};
+    updates[id][inp.dataset.field] = parseFloat(inp.value);
+  });
+  try {
+    for (const [id, data] of Object.entries(updates)) {
+      await apiPut(`/prices/${id}`, data);
+    }
+    document.getElementById('pricesSavedAlert').style.display = 'flex';
+    setTimeout(() => document.getElementById('pricesSavedAlert').style.display = 'none', 3000);
+    showToast('Market prices saved!', 'success');
+  } catch(e) { showToast('Error saving prices', 'error'); }
+}
+
+// ─── FARMERS ─────────────────────────────────────────────
+async function loadFarmers() {
+  try {
+    const data = await apiGet('/farmers');
+    allFarmers = data.data || [];
+    renderFarmers(allFarmers);
+  } catch(e) {
+    document.getElementById('farmersTableBody').innerHTML = errorRow(9, 'Could not load farmers.');
+  }
+}
+
+function renderFarmers(farmers) {
+  const tbody = document.getElementById('farmersTableBody');
+  tbody.innerHTML = farmers.length ? farmers.map((f,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><strong>${f.name}</strong></td>
+      <td><a href="tel:${f.phone}" style="color:#16a34a">${f.phone}</a></td>
+      <td>${f.village||'—'}</td>
+      <td>${f.district||'Kutch'}</td>
+      <td><span class="badge badge-gray" style="font-size:11px">${f.crop_type||'—'}</span></td>
+      <td>${f.land_acres ? f.land_acres + ' ac' : '—'}</td>
+      <td style="font-size:12px">${formatDate(f.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <a href="https://wa.me/${f.phone}" target="_blank" class="btn btn-sm" style="background:#dcfce7;color:#16a34a"><i class="fab fa-whatsapp"></i></a>
+          <button class="btn btn-danger btn-sm" onclick="deleteFarmer(${f.id})"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('') :
+    `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-users"></i><h3>No farmers registered yet</h3></div></td></tr>`;
+}
+
+function filterFarmers() {
+  const search = document.getElementById('farmerSearch').value.toLowerCase();
+  const crop = document.getElementById('farmerCropFilter').value;
+  renderFarmers(allFarmers.filter(f =>
+    (!search || f.name.toLowerCase().includes(search) || (f.village||'').toLowerCase().includes(search) || f.phone.includes(search)) &&
+    (!crop || (f.crop_type||'').toLowerCase().includes(crop.toLowerCase()))
+  ));
+}
+
+async function deleteFarmer(id) {
+  if (!confirm('Remove this farmer?')) return;
+  try { await apiDelete(`/farmers/${id}`); showToast('Farmer removed', 'success'); loadFarmers(); }
+  catch(e) { showToast('Error', 'error'); }
+}
+
+function exportFarmers() {
+  if (!allFarmers.length) { showToast('No farmers to export', 'info'); return; }
+  const csv = ['Name,Phone,Village,District,Crops,Land (acres),Registered']
+    .concat(allFarmers.map(f => `"${f.name}","${f.phone}","${f.village||''}","${f.district||'Kutch'}","${f.crop_type||''}","${f.land_acres||''}","${f.created_at||''}"`))
+    .join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'farmers_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+}
+
+// ─── CONTACTS ─────────────────────────────────────────────
+async function loadContacts() {
+  const status = document.getElementById('contactStatusFilter').value;
+  try {
+    const data = await apiGet(`/contact${status?'?status='+status:''}`);
+    allContacts = data.data || [];
+    const tbody = document.getElementById('contactsTableBody');
+    tbody.innerHTML = allContacts.length ? allContacts.map((c,i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td><strong>${c.name}</strong></td>
+        <td><a href="tel:${c.phone}" style="color:#16a34a">${c.phone||'—'}</a></td>
+        <td>${c.email||'—'}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.message}">${c.message}</td>
+        <td>
+          <select class="form-control" style="width:100px;padding:4px;font-size:12px" onchange="updateContactStatus(${c.id}, this.value)">
+            <option value="unread" ${c.status==='unread'?'selected':''}>Unread</option>
+            <option value="read" ${c.status==='read'?'selected':''}>Read</option>
+            <option value="replied" ${c.status==='replied'?'selected':''}>Replied</option>
+          </select>
+        </td>
+        <td style="font-size:12px">${formatDate(c.created_at)}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            ${c.phone ? `<a href="https://wa.me/${c.phone}?text=Hello+${encodeURIComponent(c.name)}%2C+Thank+you+for+contacting+Jay+Bhutnath+Agri+Suppler." target="_blank" class="btn btn-sm" style="background:#dcfce7;color:#16a34a"><i class="fab fa-whatsapp"></i></a>` : ''}
+            ${c.email ? `<a href="mailto:${c.email}?subject=Re: Your Inquiry&body=Hello ${c.name}," class="btn btn-secondary btn-sm"><i class="fas fa-reply"></i></a>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="deleteContact(${c.id})"><i class="fas fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>`).join('') :
+      `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-envelope"></i><h3>No inquiries</h3></div></td></tr>`;
+  } catch(e) {
+    document.getElementById('contactsTableBody').innerHTML = errorRow(8, 'Could not load inquiries.');
+  }
+}
+
+async function updateContactStatus(id, status) {
+  try { await apiPut(`/contact/${id}/status`, { status }); showToast('Status updated', 'success'); loadContacts(); }
+  catch(e) { showToast('Error', 'error'); }
+}
+
+async function deleteContact(id) {
+  if (!confirm('Delete this inquiry?')) return;
+  try { await apiDelete(`/contact/${id}`); showToast('Deleted', 'success'); loadContacts(); }
+  catch(e) { showToast('Error', 'error'); }
+}
+
+// ─── API HELPERS ──────────────────────────────────────────
+const AUTH_HEADER = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` });
+
+async function apiGet(endpoint) {
+  const res = await fetch(API + endpoint, { headers: AUTH_HEADER() });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+}
+async function apiPost(endpoint, body) {
+  const res = await fetch(API + endpoint, { method: 'POST', headers: AUTH_HEADER(), body: JSON.stringify(body) });
+  return res.json();
+}
+async function apiPut(endpoint, body) {
+  const res = await fetch(API + endpoint, { method: 'PUT', headers: AUTH_HEADER(), body: JSON.stringify(body) });
+  return res.json();
+}
+async function apiDelete(endpoint) {
+  const res = await fetch(API + endpoint, { method: 'DELETE', headers: AUTH_HEADER() });
+  return res.json();
+}
+
+// ─── MODAL ────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+window.onclick = e => { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open'); };
+
+// ─── BADGE HELPERS ────────────────────────────────────────
+function statusBadge(s) {
+  const map = { pending:'badge-warning', confirmed:'badge-info', processing:'badge-purple', dispatched:'badge-info', delivered:'badge-success', cancelled:'badge-danger' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function tokenBadge(s) {
+  const map = { waiting:'badge-warning', serving:'badge-info', served:'badge-success', skipped:'badge-gray' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function deliveryBadge(s) {
+  const map = { assigned:'badge-warning', picked_up:'badge-info', in_transit:'badge-purple', delivered:'badge-success', failed:'badge-danger' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function errorRow(cols, msg) {
+  return `<tr><td colspan="${cols}"><div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:#fca5a5"></i><h3 style="color:#dc2626">Error</h3><p style="color:#6b7280;font-size:13px">${msg}</p></div></td></tr>`;
+}
+
+// ─── DATE/TIME ────────────────────────────────────────────
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function formatTime(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ─── TOAST ───────────────────────────────────────────────
+function showToast(message, type = 'success') {
+  const icons = { success: 'check-circle', error: 'times-circle', info: 'info-circle', warning: 'exclamation-triangle' };
+  const colors = { success: '#16a34a', error: '#dc2626', info: '#2563eb', warning: '#d97706' };
+  const toast = document.createElement('div');
+  toast.style.cssText = `position:fixed;top:20px;right:20px;background:white;border-left:4px solid ${colors[type]};padding:14px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:9999;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#1f2937;min-width:260px;animation:slideInRight 0.3s ease`;
+  toast.innerHTML = `<i class="fas fa-${icons[type]}" style="color:${colors[type]}"></i>${message}`;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+// Set today's date as default for price date picker
+document.getElementById('priceDate').value = new Date().toISOString().split('T')[0];
+
+// Responsive sidebar toggle
+window.addEventListener('resize', () => {
+  const toggle = document.getElementById('sidebarToggleBtn');
+  if (toggle) toggle.style.display = window.innerWidth < 900 ? 'block' : 'none';
+});
+
+// ─── FARMER APPROVALS ────────────────────────────────────────────────────────
+async function loadFarmerApprovals() {
+  const status = document.getElementById('farmerApprovalFilter')?.value ?? 'pending';
+  try {
+    const data = await apiGet(`/farmers${status ? '?status=' + status : ''}`);
+    const farmers = data.data || [];
+    const tbody = document.getElementById('approvalTableBody');
+
+    // Update pending badge
+    if (status === 'pending' || !status) {
+      const pendingCount = status === 'pending' ? farmers.length : farmers.filter(f => f.status === 'pending').length;
+      document.getElementById('pendingFarmersCount').textContent = pendingCount;
+    }
+
+    if (!farmers.length) {
+      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="fas fa-user-check" style="font-size:40px;color:#d1fae5;display:block;margin-bottom:12px"></i><h3>No ${status||'farmer'} registrations</h3></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = farmers.map((f, i) => {
+      const statusBadge = f.status === 'approved' ? '<span class="badge badge-success">✅ Approved</span>'
+        : f.status === 'rejected' ? '<span class="badge badge-danger">❌ Rejected</span>'
+        : '<span class="badge badge-warning">⏳ Pending</span>';
+
+      const actions = f.status === 'pending' ? `
+        <button class="btn btn-primary btn-sm" onclick="approveFarmer(${f.id}, '${f.name.replace(/'/g,"\\'")}')"><i class="fas fa-check"></i> Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="openRejectModal(${f.id}, '${f.name.replace(/'/g,"\\'")}')"><i class="fas fa-times"></i> Reject</button>
+      ` : f.status === 'approved' ? `
+        <button class="btn btn-danger btn-sm" onclick="openRejectModal(${f.id}, '${f.name.replace(/'/g,"\\'")}')"><i class="fas fa-ban"></i> Revoke</button>
+        <a href="https://wa.me/${f.phone}?text=Hello+${encodeURIComponent(f.name)}%2C+your+Jay+Bhutnath+Agri+account+has+been+approved!" target="_blank" class="btn btn-sm" style="background:#dcfce7;color:#15803d"><i class="fab fa-whatsapp"></i></a>
+      ` : `
+        <button class="btn btn-primary btn-sm" onclick="approveFarmer(${f.id}, '${f.name.replace(/'/g,"\\'")}')"><i class="fas fa-redo"></i> Re-approve</button>
+      `;
+
+      return `
+        <tr>
+          <td>${i+1}</td>
+          <td><strong>${f.name}</strong></td>
+          <td><a href="tel:${f.phone}" style="color:#16a34a;font-weight:600">${f.phone}</a></td>
+          <td>${f.village || '—'}</td>
+          <td>${f.district || 'Kutch'}</td>
+          <td style="max-width:120px;font-size:12px">${f.crop_type || '—'}</td>
+          <td>${f.land_acres ? f.land_acres + ' ac' : '—'}</td>
+          <td><span class="badge ${f.role==='trader'?'badge-info':'badge-success'}" style="font-size:10px">${f.role==='trader'?'🏪 Trader':'👨‍🌾 Farmer'}</span></td>
+          <td>${statusBadge}</td>
+          <td style="font-size:12px">${formatDate(f.created_at)}</td>
+          <td><div style="display:flex;gap:4px;flex-wrap:wrap">${actions}</div></td>
+        </tr>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('approvalTableBody').innerHTML = errorRow(10, 'Could not load farmer registrations. Is backend running?');
+  }
+}
+
+let rejectFarmerId = null;
+function openRejectModal(id, name) {
+  rejectFarmerId = id;
+  document.getElementById('rejectFarmerInfo').textContent = `Rejecting registration for: ${name}`;
+  document.getElementById('rejectReason').value = '';
+  document.getElementById('rejectFarmerModal').classList.add('open');
+}
+
+async function approveFarmer(id, name) {
+  try {
+    const data = await apiPut(`/farmers/${id}/approve`, {});
+    if (data.success) {
+      showToast(`✅ ${name} approved successfully!`, 'success');
+      // Show approval alert
+      const alertEl = document.getElementById('approvalAlert');
+      const alertText = document.getElementById('approvalAlertText');
+      if (alertEl && alertText) {
+        alertText.textContent = `${name} has been approved. They can now login with their phone and PIN.`;
+        alertEl.style.display = 'flex';
+        setTimeout(() => alertEl.style.display = 'none', 5000);
+      }
+      loadFarmerApprovals();
+      // Update dashboard pending count
+      const countEl = document.getElementById('pendingFarmersCount');
+      if (countEl) countEl.textContent = Math.max(0, (parseInt(countEl.textContent)||0) - 1);
+    } else {
+      showToast(data.message || 'Failed to approve farmer', 'error');
+    }
+  } catch(e) { showToast('Network error', 'error'); }
+}
+
+async function confirmRejectFarmer() {
+  if (!rejectFarmerId) return;
+  const reason = document.getElementById('rejectReason').value.trim();
+  try {
+    const data = await apiPut(`/farmers/${rejectFarmerId}/reject`, { reason });
+    closeModal('rejectFarmerModal');
+    if (data.success) { showToast('Registration rejected', 'warning'); loadFarmerApprovals(); }
+    else showToast(data.message || 'Failed', 'error');
+  } catch(e) { showToast('Network error', 'error'); }
+}
+
+// ─── DELIVERY PARTNERS ────────────────────────────────────────────────────────
+async function loadDeliveryPartners() {
+  const status = document.getElementById('dpStatusFilter')?.value || '';
+  try {
+    const data = await apiGet(`/delivery-partners${status ? '?status=' + status : ''}`);
+    const partners = data.data || [];
+    const tbody = document.getElementById('dpTableBody');
+
+    tbody.innerHTML = partners.length ? partners.map((p, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td><strong>${p.name}</strong></td>
+        <td><a href="tel:${p.phone}" style="color:#16a34a">${p.phone}</a></td>
+        <td>${p.vehicle_number || '—'}</td>
+        <td>${p.area || '—'}</td>
+        <td><strong>${p.total_deliveries || 0}</strong></td>
+        <td><span class="badge badge-info">${p.active_deliveries || 0}</span></td>
+        <td>${p.status === 'active' ? '<span class="badge badge-success">✅ Active</span>' : '<span class="badge badge-danger">⛔ Inactive</span>'}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-secondary btn-sm" onclick='openEditPartnerModal(${JSON.stringify(p).replace(/'/g,"\\'")})'><i class="fas fa-edit"></i></button>
+            <a href="https://wa.me/${p.phone}" target="_blank" class="btn btn-sm" style="background:#dcfce7;color:#16a34a"><i class="fab fa-whatsapp"></i></a>
+            <button class="btn btn-danger btn-sm" onclick="deleteDeliveryPartner(${p.id})"><i class="fas fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>`).join('') :
+      `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-truck" style="font-size:36px;color:#d1fae5;display:block;margin-bottom:12px"></i><h3>No delivery partners yet</h3><p style="font-size:13px;color:#6b7280">Add a partner to get started</p></div></td></tr>`;
+  } catch(e) {
+    document.getElementById('dpTableBody').innerHTML = errorRow(9, 'Could not load delivery partners.');
+  }
+}
+
+function openAddPartnerModal() {
+  document.getElementById('partnerModalTitle').textContent = 'Add Delivery Partner';
+  document.getElementById('editPartnerId').value = '';
+  ['dpName','dpPhone','dpPin','dpVehicle','dpArea'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('dpStatus').value = 'active';
+  document.getElementById('addPartnerModal').classList.add('open');
+}
+
+function openEditPartnerModal(p) {
+  document.getElementById('partnerModalTitle').textContent = 'Edit Delivery Partner';
+  document.getElementById('editPartnerId').value = p.id;
+  document.getElementById('dpName').value    = p.name || '';
+  document.getElementById('dpPhone').value   = p.phone || '';
+  document.getElementById('dpPin').value     = ''; // blank PIN = don't change
+  document.getElementById('dpVehicle').value = p.vehicle_number || '';
+  document.getElementById('dpArea').value    = p.area || '';
+  document.getElementById('dpStatus').value  = p.status || 'active';
+  document.getElementById('addPartnerModal').classList.add('open');
+}
+
+async function saveDeliveryPartner() {
+  const id   = document.getElementById('editPartnerId').value;
+  const name = document.getElementById('dpName').value.trim();
+  const phone= document.getElementById('dpPhone').value.trim();
+  const pin  = document.getElementById('dpPin').value.trim();
+
+  if (!name || !phone) return showToast('Name and phone are required', 'error');
+  if (!id && !pin)     return showToast('PIN is required for new partners', 'error');
+  if (pin && !/^\d{4}$/.test(pin)) return showToast('PIN must be exactly 4 digits', 'error');
+
+  const payload = {
+    name, phone,
+    vehicle_number: document.getElementById('dpVehicle').value.trim(),
+    area:           document.getElementById('dpArea').value.trim(),
+    status:         document.getElementById('dpStatus').value,
+  };
+  if (pin) payload.pin = pin;
+
+  try {
+    const result = id ? await apiPut(`/delivery-partners/${id}`, payload) : await apiPost('/delivery-partners', payload);
+    if (result.success) {
+      closeModal('addPartnerModal');
+      showToast(id ? 'Partner updated!' : 'Partner added! They can now login.', 'success');
+      loadDeliveryPartners();
+    } else {
+      showToast(result.message || 'Error saving partner', 'error');
+    }
+  } catch(e) { showToast('Network error', 'error'); }
+}
+
+async function deleteDeliveryPartner(id) {
+  if (!confirm('Remove this delivery partner? They will no longer be able to login.')) return;
+  try {
+    const data = await apiDelete(`/delivery-partners/${id}`);
+    if (data.success) { showToast('Partner removed', 'success'); loadDeliveryPartners(); }
+    else showToast(data.message || 'Error', 'error');
+  } catch(e) { showToast('Network error', 'error'); }
+}
+
+
+</script>
+</body>
+</html>

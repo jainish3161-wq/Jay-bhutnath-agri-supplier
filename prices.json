@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "created_at": "2026-09-06T15:19:02.549Z",
+    "updated_at": "2026-09-06T15:19:02.549Z",
+    "product_name": "Lokwan Wheat",
+    "product_name_gu": "લોકવન ઘઉં",
+    "category": "Wheat",
+    "price_per_quintal": 2800,
+    "change_amount": 50,
+    "market": "Mandvi Mandi",
+    "price_date": "2026-09-06"
+  },
+  {
+    "id": 2,
+    "created_at": "2026-09-06T15:19:02.551Z",
+    "updated_at": "2026-09-06T15:19:02.551Z",
+    "product_name": "Wheat Flour (Atta)",
+    "product_name_gu": "ઘઉંનો લોટ",
+    "category": "Flour",
+    "price_per_quintal": 3500,
+    "change_amount": -25,
+    "market": "Mandvi Mandi",
+    "price_date": "2026-09-06"
+  },
+  {
+    "id": 3,
+    "created_at": "2026-09-06T15:19:02.552Z",
+    "updated_at": "2026-09-06T15:19:02.552Z",
+    "product_name": "Castor Seeds",
+    "product_name_gu": "એરંડાના બીજ",
+    "category": "Oil Seeds",
+    "price_per_quintal": 7200,
+    "change_amount": 150,
+    "market": "Mandvi Mandi",
+    "price_date": "2026-09-06"
+  },
+  {
+    "id": 4,
+    "created_at": "2026-09-06T15:19:02.553Z",
+    "updated_at": "2026-09-06T15:19:02.553Z",
+    "product_name": "Groundnuts",
+    "product_name_gu": "મગફળી",
+    "category": "Oil Seeds",
+    "price_per_quintal": 6500,
+    "change_amount": -100,
+    "market": "Mandvi Mandi",
+    "price_date": "2026-09-06"
+  },
+  {
+    "id": 5,
+    "created_at": "2026-09-06T15:19:02.554Z",
+    "updated_at": "2026-09-06T15:19:02.554Z",
+    "product_name": "Cattle Feed",
+    "product_name_gu": "પશુ આહાર",
+    "category": "Feed",
+    "price_per_quintal": 1800,
+    "change_amount": 0,
+    "market": "Mandvi Mandi",
+    "price_date": "2026-09-06"
+  },
+  {
+    "id": 6,
+    "created_at": "2026-09-06T15:19:02.555Z",
+    "updated_at": "2026-09-20T10:13:17.153Z",
+    "product_name": "Sesame Seeds",
+    "product_name_gu": "તલ",
+    "category": "Oil Seeds",
+    "price_per_quintal": 2900,
+    "change_amount": 100,
+    "market": "Mandvi Mandi",
+    "price_date": "2026-09-06"
+  },
+  {
+    "id": 7,
+    "created_at": "2026-09-20T10:13:17.159Z",
+    "updated_at": "2026-09-25T09:10:01.864Z",
+    "product_name": "Lokwan Wheat",
+    "product_name_gu": "લોકવન ઘઉં",
+    "category": "Wheat",
+    "price_per_quintal": 2900,
+    "change_amount": 100,
+    "market": "Mandvi Mandi",
+    "price_date": "2026-09-20"
+  },
+  {
+    "id": 8,
+    "created_at": "2026-09-25T09:10:01.875Z",
+    "updated_at": "2026-09-25T12:31:36.430Z",
+    "product_name": "Lokwan Wheat",
+    "product_name_gu": "લોકવન ઘઉં",
+    "category": "Wheat",
+    "price_per_quintal": 3000,
+    "change_amount": 50,
+    "market": "Mandvi Mandi",
+    "price_date": "2026-09-25"
+  }
+]

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Awaiting Approval — Jay Bhutnath Agri</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="config.js"></script>
+  <script src="translations.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#050d05;font-family:Poppins,sans-serif;color:white;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden}
+    .bg{position:fixed;inset:0;background:radial-gradient(ellipse 120% 80% at 20% 20%,#0d2e0d,transparent 60%),radial-gradient(ellipse 80% 80% at 80% 80%,#0a1f0a,transparent 60%),#050d05;z-index:0}
+    .orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none}
+    .orb1{width:400px;height:400px;background:radial-gradient(circle,rgba(22,163,74,.2),transparent 70%);top:-100px;left:-100px;animation:o1 20s ease-in-out infinite}
+    .orb2{width:300px;height:300px;background:radial-gradient(circle,rgba(251,191,36,.1),transparent 70%);bottom:0;right:-50px;animation:o1 16s ease-in-out infinite reverse}
+    @keyframes o1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-40px)}}
+    .card{position:relative;z-index:1;background:rgba(255,255,255,.05);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.1);border-radius:28px;padding:52px 44px;width:100%;max-width:520px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08)}
+    .status-ring{width:110px;height:110px;border-radius:50%;margin:0 auto 28px;display:flex;align-items:center;justify-content:center;font-size:46px;position:relative}
+    .ring-pending{background:radial-gradient(circle,rgba(251,191,36,.15),rgba(251,191,36,.05));border:2px solid rgba(251,191,36,.3);box-shadow:0 0 40px rgba(251,191,36,.15)}
+    .ring-approved{background:radial-gradient(circle,rgba(22,163,74,.2),rgba(22,163,74,.05));border:2px solid rgba(22,163,74,.4);box-shadow:0 0 40px rgba(22,163,74,.2)}
+    .ring-rejected{background:radial-gradient(circle,rgba(220,38,38,.15),rgba(220,38,38,.05));border:2px solid rgba(220,38,38,.3)}
+    .ring-pulse{animation:ringPulse 2s ease-in-out infinite}
+    @keyframes ringPulse{0%,100%{box-shadow:0 0 20px rgba(251,191,36,.15)}50%{box-shadow:0 0 50px rgba(251,191,36,.3)}}
+    .card h2{font-size:1.6rem;font-weight:800;margin-bottom:8px}
+    .farmer-name-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;margin-bottom:20px;color:rgba(255,255,255,.8)}
+    .desc{font-size:14px;color:rgba(255,255,255,.5);line-height:1.8;margin-bottom:0}
+    /* Progress steps */
+    .steps-row{display:flex;align-items:center;justify-content:center;margin:32px 0}
+    .step-node{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:64px}
+    .step-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);background:transparent;transition:all .4s}
+    .step-dot.done{background:#16a34a;border-color:#16a34a;color:white;box-shadow:0 4px 12px rgba(22,163,74,.35)}
+    .step-dot.active{background:rgba(251,191,36,.15);border-color:#fbbf24;color:#fbbf24;animation:stepPulse 1.5s infinite}
+    @keyframes stepPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.3)}50%{box-shadow:0 0 0 8px rgba(251,191,36,0)}}
+    .step-label{font-size:10px;color:rgba(255,255,255,.35);font-weight:600;text-align:center;max-width:64px;line-height:1.3}
+    .step-line{flex:1;height:2px;background:rgba(255,255,255,.08);margin:0 4px;margin-bottom:22px;transition:background .4s;max-width:60px}
+    .step-line.done{background:#16a34a}
+    /* Actions */
+    .action-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;text-decoration:none;transition:all .2s}
+    .btn-green{background:linear-gradient(135deg,#16a34a,#15803d);color:white;box-shadow:0 6px 20px rgba(22,163,74,.35)}
+    .btn-green:hover{transform:translateY(-2px)}
+    .btn-ghost{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+    .btn-ghost:hover{background:rgba(255,255,255,.12)}
+    .btn-whatsapp{background:linear-gradient(135deg,#25d366,#128c7e);color:white}
+    /* Status check */
+    .check-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px;margin-top:24px;text-align:left}
+    .check-box h4{font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+    .check-input-row{display:flex;gap:10px}
+    .check-input{flex:1;padding:10px 14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;font-size:14px;color:white;font-family:Poppins,sans-serif;outline:none}
+    .check-input:focus{border-color:rgba(255,255,255,.25)}
+    .check-input::placeholder{color:rgba(255,255,255,.25)}
+    .btn-check{padding:10px 16px;background:rgba(255,255,255,.1);border:none;border-radius:10px;color:white;cursor:pointer;font-weight:700;font-size:13px;font-family:Poppins,sans-serif;white-space:nowrap;transition:.2s}
+    .btn-check:hover{background:rgba(255,255,255,.18)}
+    .check-result{margin-top:10px;padding:10px 13px;border-radius:8px;font-size:12px;display:none}
+    .check-result.pending{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);color:#fde68a}
+    .check-result.approved{background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.2);color:#4ade80}
+    .check-result.rejected{background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);color:#fca5a5}
+    .rejected-info{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);border-radius:12px;padding:14px;margin-top:16px;font-size:13px;color:#fca5a5;text-align:left;display:none}
+    .auto-note{font-size:11px;color:rgba(255,255,255,.2);margin-top:16px}
+    .back-link{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.3);font-size:12px;margin-top:20px;text-decoration:none;transition:.2s}
+    .back-link:hover{color:rgba(255,255,255,.6)}
+  </style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="card">
+  <!-- Status icon -->
+  <div class="status-ring ring-pending ring-pulse" id="statusRing">⏳</div>
+  <h2 id="statusTitle">Registration Submitted!</h2>
+  <div class="farmer-name-chip" id="farmerChip" style="display:none"><i class="fas fa-user"></i> <span id="farmerNameSpan"></span></div>
+  <p class="desc" id="statusDesc">Your registration is under review. The admin will verify your details and approve your account. This usually takes up to 24 hours.</p>
+
+  <!-- Progress -->
+  <div class="steps-row">
+    <div class="step-node"><div class="step-dot done">✓</div><div class="step-label">Registered</div></div>
+    <div class="step-line done"></div>
+    <div class="step-node"><div class="step-dot active" id="s2">2</div><div class="step-label">Under Review</div></div>
+    <div class="step-line" id="l3"></div>
+    <div class="step-node"><div class="step-dot" id="s3">3</div><div class="step-label">Approved</div></div>
+    <div class="step-line" id="l4"></div>
+    <div class="step-node"><div class="step-dot" id="s4">4</div><div class="step-label">Login</div></div>
+  </div>
+
+  <!-- Approved actions -->
+  <div id="approvedSection" style="display:none">
+    <div style="background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.25);border-radius:12px;padding:14px;font-size:14px;color:#4ade80;margin-bottom:16px">
+      🎉 Your account has been approved! You can now login.
+    </div>
+    <a href="index.html" class="btn btn-green" style="text-decoration:none"><i class="fas fa-sign-in-alt"></i> Login Now</a>
+  </div>
+
+  <!-- Rejected -->
+  <div id="rejectedSection" style="display:none">
+    <div class="rejected-info" id="rejectedReasonBox" style="display:block">
+      <strong>Registration Not Approved</strong><br>
+      <span id="rejectedReasonText">Contact admin for more information.</span>
+    </div>
+    <div class="action-row" style="margin-top:16px">
+      <a href="index.html" class="btn btn-ghost" style="text-decoration:none"><i class="fas fa-redo"></i> Register Again</a>
+    </div>
+  </div>
+
+  <!-- Status check -->
+  <div class="check-box" id="checkBox">
+    <h4>Check your approval status</h4>
+    <div class="check-input-row">
+      <input type="tel" class="check-input" id="checkPhone" placeholder="Enter your 10-digit mobile" maxlength="10">
+      <button class="btn-check" onclick="checkStatus()"><i class="fas fa-search"></i> Check</button>
+    </div>
+    <div class="check-result" id="checkResult"></div>
+  </div>
+
+  <p class="auto-note" id="autoNote">Auto-checking every 30 seconds&hellip;</p>
+  <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Portal</a>
+</div>
+
+<script>
+const API='http://localhost:3001/api';
+let polling;
+const pending=JSON.parse(localStorage.getItem('pendingFarmer')||'{}');
+
+if(pending.name){
+  document.getElementById('farmerNameSpan').textContent=pending.name;
+  document.getElementById('farmerChip').style.display='inline-flex';
+  if(pending.phone)document.getElementById('checkPhone').value=pending.phone;
+}
+
+async function checkStatus(phone){
+  phone=phone||document.getElementById('checkPhone').value.trim()||pending.phone;
+  if(!phone||phone.length<10)return;
+  try{
+    const r=await fetch(`${API}/auth/status/${phone}`);
+    const d=await r.json();
+    if(!d.success){showResult('rejected','❌ No account found with this number.');return;}
+    const u=d.data;
+    if(pending.name)document.getElementById('farmerNameSpan').textContent=u.name||pending.name;
+    document.getElementById('farmerChip').style.display='inline-flex';
+    applyStatus(u.status,u.rejection_reason,u.name);
+    if(u.status==='pending')showResult('pending','⏳ Still under review. Please wait for admin approval.');
+    else if(u.status==='approved')showResult('approved','✅ Approved! Click "Login Now" to access the portal.');
+    else showResult('rejected','❌ Not approved: '+(u.rejection_reason||'Contact admin.'));
+  }catch(e){showResult('rejected','Could not connect to server.');}
+}
+
+function applyStatus(status,reason,name){
+  const ring=document.getElementById('statusRing');
+  if(status==='approved'){
+    ring.textContent='✅';ring.className='status-ring ring-approved';
+    document.getElementById('statusTitle').textContent='Account Approved!';
+    document.getElementById('statusDesc').textContent='Congratulations '+((name&&name+', ')||'')+'your account has been approved. You can now login.';
+    document.getElementById('s2').className='step-dot done';document.getElementById('s2').textContent='✓';
+    document.getElementById('s3').className='step-dot done';document.getElementById('s3').textContent='✓';
+    document.getElementById('s4').className='step-dot active';
+    document.getElementById('l3').classList.add('done');document.getElementById('l4').classList.add('done');
+    document.getElementById('approvedSection').style.display='block';
+    document.getElementById('checkBox').style.display='none';
+    document.getElementById('autoNote').style.display='none';
+    clearInterval(polling);
+  }else if(status==='rejected'){
+    ring.textContent='❌';ring.className='status-ring ring-rejected';
+    document.getElementById('statusTitle').textContent='Not Approved';
+    document.getElementById('statusDesc').textContent='';
+    document.getElementById('rejectedReasonText').textContent=reason||'Contact admin for more information.';
+    document.getElementById('rejectedSection').style.display='block';
+    document.getElementById('checkBox').style.display='none';
+    document.getElementById('autoNote').style.display='none';
+    clearInterval(polling);
+  }
+}
+
+function showResult(type,msg){
+  const el=document.getElementById('checkResult');
+  el.className='check-result '+type;el.textContent=msg;el.style.display='block';
+}
+
+if(pending.phone){
+  checkStatus(pending.phone);
+  polling=setInterval(()=>checkStatus(pending.phone),30000);
+}
+
+document.getElementById('checkPhone').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,''));
+document.getElementById('checkPhone').addEventListener('keydown',e=>{if(e.key==='Enter')checkStatus();});
+</script>
+</body>
+</html>

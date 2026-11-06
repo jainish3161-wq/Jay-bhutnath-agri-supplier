@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products — Jay Bhutnath Agri Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="translations.js"></script>
+  <script src="server-check.js"></script>
+  <style>
+    body{background:#f0fdf4;padding-top:56px}
+    /* ── Portal nav ── */
+    .portal-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:linear-gradient(135deg,#0a1f0a,#14532d);border-bottom:1px solid rgba(255,255,255,.08);height:56px;display:flex;align-items:center;padding:0 24px;gap:20px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+    .pnav-logo{display:flex;align-items:center;gap:8px;color:white;font-weight:800;font-size:14px;text-decoration:none;letter-spacing:.3px}
+    .pnav-logo span{font-size:20px}
+    .pnav-links{display:flex;gap:4px;flex:1;margin-left:16px}
+    .pnav-link{color:rgba(255,255,255,.6);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;transition:.2s;display:flex;align-items:center;gap:6px}
+    .pnav-link:hover,.pnav-link.active{background:rgba(255,255,255,.12);color:white}
+    .pnav-right{display:flex;align-items:center;gap:12px;margin-left:auto}
+    .pnav-user{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 12px 5px 8px}
+    .pnav-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+    .farmer-avatar{background:linear-gradient(135deg,#16a34a,#15803d);color:white}
+    .trader-avatar{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white}
+    .pnav-username{font-size:13px;font-weight:700;color:white}
+    .pnav-role{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px}
+    .btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:.2s}
+    .btn-logout:hover{background:rgba(255,255,255,.18);color:white}
+    .lang-toggle{display:flex;gap:4px}
+    .ltbtn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;transition:.2s}
+    .ltbtn.active{background:rgba(255,255,255,.2);color:white;border-color:rgba(255,255,255,.25)}
+
+    /* ── Products grid ── */
+    .page-header{background:linear-gradient(135deg,#0a1f0a,#14532d);padding:40px 24px;color:white;text-align:center}
+    .page-header h1{font-size:2rem;font-weight:900;margin-bottom:6px}
+    .page-header p{color:rgba(255,255,255,.6);font-size:14px}
+    .main-content{max-width:1200px;margin:32px auto;padding:0 24px}
+    .filter-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:28px;background:white;padding:16px 20px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .filter-btn{padding:7px 18px;border-radius:20px;border:1.5px solid #e5e7eb;background:white;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;font-family:Poppins,sans-serif;color:#374151}
+    .filter-btn.active,.filter-btn:hover{background:#16a34a;border-color:#16a34a;color:white}
+    .products-grid3d{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px}
+
+    /* ── 3D Product card ── */
+    .prod-card{background:white;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);transition:all .35s cubic-bezier(.25,.46,.45,.94);cursor:pointer;position:relative;transform-style:preserve-3d}
+    .prod-card:hover{box-shadow:0 16px 40px rgba(22,163,74,.18);transform:translateY(-6px) rotateX(2deg)}
+    .prod-card-img{height:140px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;overflow:hidden}
+    .prod-card-img::before{content:'';position:absolute;inset:0;background:inherit;opacity:.06}
+    .prod-farmer{background:linear-gradient(135deg,#f0fdf4,#dcfce7)}
+    .prod-trader{background:linear-gradient(135deg,#eff6ff,#dbeafe)}
+    .prod-oilseed{background:linear-gradient(135deg,#fefce8,#fef9c3)}
+    .prod-feed{background:linear-gradient(135deg,#fff7ed,#ffedd5)}
+    .prod-card-body{padding:20px}
+    .prod-name{font-size:1rem;font-weight:800;color:#14532d;margin-bottom:2px}
+    .prod-name-gu{font-size:13px;color:#16a34a;font-weight:600;margin-bottom:8px}
+    .prod-desc{font-size:12px;color:#6b7280;line-height:1.5;margin-bottom:16px}
+    .prod-price-row{display:flex;gap:12px;align-items:flex-end;margin-bottom:16px}
+    .prod-price{text-align:center}
+    .prod-price .label{font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block}
+    .prod-price .val{font-size:1.1rem;font-weight:900;color:#14532d}
+    .prod-price .unit{font-size:11px;color:#6b7280}
+    .prod-price-divider{width:1px;height:32px;background:#f3f4f6}
+    .prod-status{position:absolute;top:12px;right:12px;background:rgba(22,163,74,.9);color:white;font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px}
+    .prod-min{font-size:11px;color:#9ca3af;margin-bottom:12px}
+    .btn-order{width:100%;padding:10px;background:linear-gradient(135deg,#16a34a,#15803d);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn-order:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(22,163,74,.35)}
+    .empty-state{text-align:center;padding:60px 20px;color:#9ca3af}
+    .empty-state i{font-size:48px;margin-bottom:16px;display:block;color:#d1fae5}
+    @media(max-width:600px){.pnav-links{display:none}.main-content{padding:0 16px}}
+  </style>
+</head>
+<body>
+
+<script>
+  // Auth guard — farmer or trader only
+  const _session = requireAuth(['farmer','trader']);
+  if (!_session) throw new Error('Auth redirect');
+  window._currentSession = _session;
+</script>
+
+<!-- Portal Nav -->
+<nav class="portal-nav" id="portalNav">
+  <a href="products.html" class="pnav-logo"><span>🌾</span> JAY BHUTNATH AGRI</a>
+  <div class="pnav-links">
+    <a href="products.html" class="pnav-link active"><i class="fas fa-seedling"></i> Products</a>
+    <a href="prices.html"   class="pnav-link"><i class="fas fa-chart-line"></i> Market Prices</a>
+    <a href="order.html"    class="pnav-link"><i class="fas fa-shopping-cart"></i> Place Order</a>
+    <a href="token.html"    class="pnav-link"><i class="fas fa-ticket-alt"></i> Token</a>
+  </div>
+  <div class="pnav-right">
+    <div class="lang-toggle">
+      <button class="ltbtn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+      <button class="ltbtn" id="btn-gu" onclick="setLanguage('gu')">ગુ</button>
+    </div>
+    <div class="pnav-user" id="userBadge">
+      <div class="pnav-avatar farmer-avatar" id="navAvatar">F</div>
+      <div><div class="pnav-username" id="navName">Loading…</div><div class="pnav-role" id="navRole">farmer</div></div>
+    </div>
+    <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header">
+  <h1 data-i18n="products.title">🌾 Our Products</h1>
+  <p data-i18n="products.subtitle">Fresh, quality agricultural commodities — direct from source</p>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+  <div class="filter-bar">
+    <span style="font-size:13px;font-weight:700;color:#374151">Filter:</span>
+    <button class="filter-btn active" onclick="filterProducts('all',this)">All</button>
+    <button class="filter-btn" onclick="filterProducts('Wheat',this)">🌾 Wheat</button>
+    <button class="filter-btn" onclick="filterProducts('Flour',this)">🫓 Flour</button>
+    <button class="filter-btn" onclick="filterProducts('Oil Seeds',this)">🌱 Oil Seeds</button>
+    <button class="filter-btn" onclick="filterProducts('Feed',this)">🐄 Feed</button>
+    <button class="filter-btn" onclick="filterProducts('in_stock',this)">✅ In Stock</button>
+  </div>
+  <div class="products-grid3d" id="productsGrid">
+    <div style="text-align:center;padding:40px;color:#9ca3af;grid-column:1/-1"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#16a34a"></i></div>
+  </div>
+</div>
+
+<script>
+const API = window.API_BASE || 'http://localhost:3001/api';
+let allProducts = [];
+const session = window._currentSession;
+const role = session?.user?.role || 'farmer';
+const name = session?.user?.name || '';
+
+// Populate nav
+document.getElementById('navName').textContent = name;
+document.getElementById('navRole').textContent  = role.charAt(0).toUpperCase() + role.slice(1);
+document.getElementById('navAvatar').textContent = name.charAt(0).toUpperCase();
+document.getElementById('navAvatar').className = `pnav-avatar ${role}-avatar`;
+
+const emojiGradients = { Wheat: 'prod-farmer', Flour: 'prod-farmer', 'Oil Seeds': 'prod-oilseed', Feed: 'prod-feed' };
+
+async function loadProducts() {
+  try {
+    const r    = await fetch(API + '/products', { headers: { 'Authorization': 'Bearer ' + session.token } });
+    const data = await r.json();
+    allProducts = data.data || [];
+    renderProducts(allProducts);
+  } catch(e) {
+    document.getElementById('productsGrid').innerHTML = '<div style="text-align:center;padding:40px;color:#dc2626;grid-column:1/-1"><i class="fas fa-exclamation-circle" style="font-size:32px;margin-bottom:12px;display:block"></i>Could not load products. Is the backend running?</div>';
+  }
+}
+
+function renderProducts(list) {
+  const grid = document.getElementById('productsGrid');
+  if (!list.length) { grid.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products found</p></div>'; return; }
+  grid.innerHTML = list.map(p => `
+    <div class="prod-card" onmousemove="tilt3d(this,event)" onmouseleave="untilt(this)">
+      ${p.in_stock ? '<div class="prod-status">In Stock</div>' : '<div class="prod-status" style="background:rgba(156,163,175,.9)">Out</div>'}
+      <div class="prod-card-img ${emojiGradients[p.category] || 'prod-trader'}">${p.image_emoji || '🌾'}</div>
+      <div class="prod-card-body">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-name-gu">${p.name_gu || ''}</div>
+        <div class="prod-desc">${p.description || ''}</div>
+        <div class="prod-price-row">
+          <div class="prod-price"><span class="label">Per KG</span><span class="val">₹${p.price_per_kg}</span><span class="unit">/kg</span></div>
+          <div class="prod-price-divider"></div>
+          <div class="prod-price"><span class="label">Per Quintal</span><span class="val">₹${p.price_per_quintal?.toLocaleString('en-IN')}</span><span class="unit">/q</span></div>
+        </div>
+        <div class="prod-min">Min order: ${p.min_order_kg || 1} kg</div>
+        <button class="btn-order" onclick="orderProduct(${p.id},'${p.name.replace(/'/g,"\\'")}')"><i class="fas fa-shopping-cart"></i> Order Now</button>
+      </div>
+    </div>`).join('');
+}
+
+function filterProducts(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (cat === 'all')       renderProducts(allProducts);
+  else if (cat === 'in_stock') renderProducts(allProducts.filter(p => p.in_stock === 1));
+  else renderProducts(allProducts.filter(p => p.category === cat));
+}
+
+function orderProduct(id, name) { window.location.href = `order.html?product_id=${id}&product=${encodeURIComponent(name)}`; }
+
+// 3D tilt effect
+function tilt3d(el, e) {
+  const r = el.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width - .5;
+  const y = (e.clientY - r.top) / r.height - .5;
+  el.style.transform = `translateY(-6px) perspective(800px) rotateY(${x * 12}deg) rotateX(${-y * 12}deg)`;
+}
+function untilt(el) { el.style.transform = ''; }
+
+loadProducts();
+</script>
+</body>
+</html>

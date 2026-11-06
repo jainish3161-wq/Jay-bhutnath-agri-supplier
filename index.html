@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jay Bhutnath Agri Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="config.js"></script>
+  <script src="translations.js"></script>
+  <script src="server-check.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --green:#16a34a;--green-dark:#14532d;--green-deep:#0a1f0a;
+      --gold:#fbbf24;--blue:#2563eb;--orange:#ea580c;--purple:#7c3aed;
+      --glass:rgba(255,255,255,0.06);--glass-border:rgba(255,255,255,0.12);
+    }
+    html,body{height:100%;font-family:Poppins,sans-serif;overflow-x:hidden}
+    body{background:#050d05;color:white}
+
+    /* ── Animated BG ── */
+    .bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden}
+    .bg-gradient{position:absolute;inset:0;background:radial-gradient(ellipse 120% 80% at 20% 20%,#0d2e0d 0%,transparent 60%),radial-gradient(ellipse 100% 80% at 80% 80%,#0a1f0a 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 50% 50%,#071507 0%,#020502 100%)}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);animation:orbFloat 20s ease-in-out infinite;pointer-events:none}
+    .orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(22,163,74,.25) 0%,transparent 70%);top:-100px;left:-100px;animation-duration:22s}
+    .orb2{width:400px;height:400px;background:radial-gradient(circle,rgba(251,191,36,.12) 0%,transparent 70%);bottom:-50px;right:-50px;animation-duration:18s;animation-delay:-8s}
+    .orb3{width:300px;height:300px;background:radial-gradient(circle,rgba(37,99,235,.15) 0%,transparent 70%);top:40%;left:60%;animation-duration:25s;animation-delay:-12s}
+    .orb4{width:200px;height:200px;background:radial-gradient(circle,rgba(124,58,237,.12) 0%,transparent 70%);top:20%;right:20%;animation-duration:15s;animation-delay:-5s}
+    @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(30px,-40px) scale(1.05)}50%{transform:translate(-20px,30px) scale(0.97)}75%{transform:translate(40px,10px) scale(1.03)}}
+
+    /* ── Particles ── */
+    .particle{position:absolute;font-size:16px;opacity:0;animation:particleFall linear infinite}
+    @keyframes particleFall{0%{transform:translateY(-20px) rotate(0deg);opacity:0}10%{opacity:.4}90%{opacity:.15}100%{transform:translateY(100vh) rotate(360deg);opacity:0}}
+
+    /* ── Language bar ── */
+    .lang-bar{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(0,0,0,.4);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);padding:8px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .lang-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;letter-spacing:.5px}
+    .lang-logo span{font-size:22px}
+    .lang-btns{display:flex;gap:6px}
+    .lang-btn{padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);font-size:12px;font-weight:600;cursor:pointer;transition:.2s;font-family:Poppins,sans-serif}
+    .lang-btn.active,.lang-btn:hover{background:var(--green);border-color:var(--green);color:white}
+
+    /* ── Main layout ── */
+    .main{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 20px 40px}
+    .portal-center{width:100%;max-width:1100px}
+
+    /* ── Header ── */
+    .portal-header{text-align:center;margin-bottom:56px}
+    .portal-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:600;color:#4ade80;letter-spacing:1px;text-transform:uppercase;margin-bottom:24px}
+    .portal-title{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:900;line-height:1.1;margin-bottom:16px}
+    .portal-title .line1{display:block;color:rgba(255,255,255,.9)}
+    .portal-title .line2{display:block;background:linear-gradient(135deg,#4ade80,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .portal-sub{font-size:16px;color:rgba(255,255,255,.5);max-width:500px;margin:0 auto;line-height:1.7}
+
+    /* ── Role cards ── */
+    .role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:32px}
+    .role-card{position:relative;border-radius:24px;padding:36px 28px;cursor:pointer;transition:all .4s cubic-bezier(.25,.46,.45,.94);transform-style:preserve-3d;will-change:transform;overflow:hidden;border:1.5px solid var(--glass-border)}
+    .role-card::before{content:'';position:absolute;inset:0;border-radius:24px;opacity:0;transition:opacity .3s}
+    .role-card:hover::before{opacity:1}
+    .role-card.selected{border-color:var(--card-color)!important;box-shadow:0 0 0 2px var(--card-color),0 24px 60px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1)!important}
+    .role-card-bg{position:absolute;inset:0;border-radius:24px;transition:opacity .3s;opacity:.08}
+
+    /* Farmer card */
+    .role-card.farmer{--card-color:#16a34a;background:linear-gradient(145deg,rgba(22,163,74,.08),rgba(20,83,45,.04))}
+    .role-card.farmer .role-card-bg{background:radial-gradient(ellipse at top left,#16a34a,transparent 70%)}
+    .role-card.farmer:hover{box-shadow:0 20px 60px rgba(22,163,74,.25);border-color:rgba(22,163,74,.4);transform:translateY(-4px)}
+
+    /* Trader card */
+    .role-card.trader{--card-color:#2563eb;background:linear-gradient(145deg,rgba(37,99,235,.08),rgba(30,58,138,.04))}
+    .role-card.trader .role-card-bg{background:radial-gradient(ellipse at top left,#2563eb,transparent 70%)}
+    .role-card.trader:hover{box-shadow:0 20px 60px rgba(37,99,235,.25);border-color:rgba(37,99,235,.4);transform:translateY(-4px)}
+
+    /* Delivery card */
+    .role-card.delivery{--card-color:#ea580c;background:linear-gradient(145deg,rgba(234,88,12,.08),rgba(154,52,18,.04))}
+    .role-card.delivery .role-card-bg{background:radial-gradient(ellipse at top left,#ea580c,transparent 70%)}
+    .role-card.delivery:hover{box-shadow:0 20px 60px rgba(234,88,12,.25);border-color:rgba(234,88,12,.4);transform:translateY(-4px)}
+
+    .role-icon{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:20px;position:relative;z-index:1}
+    .farmer .role-icon{background:linear-gradient(135deg,rgba(22,163,74,.3),rgba(22,163,74,.1));box-shadow:0 8px 24px rgba(22,163,74,.2)}
+    .trader .role-icon{background:linear-gradient(135deg,rgba(37,99,235,.3),rgba(37,99,235,.1));box-shadow:0 8px 24px rgba(37,99,235,.2)}
+    .delivery .role-icon{background:linear-gradient(135deg,rgba(234,88,12,.3),rgba(234,88,12,.1));box-shadow:0 8px 24px rgba(234,88,12,.2)}
+
+    .role-title{font-size:1.2rem;font-weight:800;margin-bottom:6px;position:relative;z-index:1}
+    .role-subtitle{font-size:13px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:20px;position:relative;z-index:1}
+    .role-perks{list-style:none;margin-bottom:24px;position:relative;z-index:1}
+    .role-perks li{font-size:12px;color:rgba(255,255,255,.6);padding:4px 0;display:flex;align-items:center;gap:8px}
+    .role-perks li::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+    .farmer .role-perks li::before{background:#4ade80}
+    .trader .role-perks li::before{background:#60a5fa}
+    .delivery .role-perks li::before{background:#fb923c}
+    .role-badge{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.5);z-index:1}
+    .selected-check{display:none;position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;font-size:13px;z-index:2}
+    .farmer .selected-check{background:#16a34a}
+    .trader .selected-check{background:#2563eb}
+    .delivery .selected-check{background:#ea580c}
+    .role-card.selected .selected-check{display:flex}
+    .role-card.selected .role-badge{display:none}
+
+    /* ── Auth panel (glass) ── */
+    .auth-glass{background:rgba(255,255,255,.05);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:40px;box-shadow:0 32px 80px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.08)}
+    .auth-tabs{display:flex;gap:4px;background:rgba(0,0,0,.3);border-radius:12px;padding:4px;margin-bottom:32px}
+    .auth-tab{flex:1;padding:10px;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:14px;font-weight:600;border-radius:9px;cursor:pointer;transition:.2s;font-family:Poppins,sans-serif}
+    .auth-tab.active{background:rgba(255,255,255,.1);color:white;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+    .auth-form-wrap{position:relative}
+    .auth-form{display:none}
+    .auth-form.active{display:block}
+    .field-group{margin-bottom:18px}
+    .field-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:7px;letter-spacing:.3px}
+    .field-input{width:100%;padding:12px 16px 12px 44px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;font-size:14px;font-family:Poppins,sans-serif;color:white;outline:none;transition:.3s;box-sizing:border-box}
+    .field-input::placeholder{color:rgba(255,255,255,.25)}
+    .field-input:focus{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1);box-shadow:0 0 0 4px rgba(255,255,255,.04)}
+    .field-wrap{position:relative}
+    .field-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.3);font-size:15px;pointer-events:none}
+    .field-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:14px;padding:4px}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .btn-auth{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;margin-top:8px}
+    .btn-auth::after{content:'';position:absolute;inset:0;background:white;opacity:0;transition:opacity .2s}
+    .btn-auth:hover::after{opacity:.08}
+    .btn-farmer{background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 8px 24px rgba(22,163,74,.35);color:white}
+    .btn-trader{background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 8px 24px rgba(37,99,235,.35);color:white}
+    .btn-delivery{background:linear-gradient(135deg,#ea580c,#c2410c);box-shadow:0 8px 24px rgba(234,88,12,.35);color:white}
+    .btn-auth:hover{transform:translateY(-2px)}
+    .btn-auth:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .error-alert{background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);border-radius:10px;padding:12px 16px;font-size:13px;color:#fca5a5;display:none;align-items:center;gap:8px;margin-bottom:16px}
+    .pending-banner{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:14px 16px;font-size:13px;color:#fde68a;display:none;margin-bottom:16px}
+    .pin-hint{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:9px 13px;font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;display:flex;align-items:flex-start;gap:7px}
+    .divider-text{text-align:center;font-size:12px;color:rgba(255,255,255,.3);margin:20px 0;position:relative}
+    .divider-text::before,.divider-text::after{content:'';position:absolute;top:50%;width:calc(50% - 30px);height:1px;background:rgba(255,255,255,.08)}
+    .divider-text::before{left:0}.divider-text::after{right:0}
+
+    /* ── Admin entry ── */
+    .admin-entry{text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06)}
+    .admin-link{display:inline-flex;align-items:center;gap:7px;color:rgba(255,255,255,.3);font-size:12px;font-weight:600;text-decoration:none;padding:8px 18px;border:1px solid rgba(255,255,255,.08);border-radius:20px;transition:.2s}
+    .admin-link:hover{color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.05)}
+
+    /* ── Floating status chip ── */
+    .status-chip{position:fixed;bottom:24px;right:24px;background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.3);border-radius:12px;padding:8px 14px;font-size:11px;color:#4ade80;display:flex;align-items:center;gap:6px;z-index:100}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* ── Responsive ── */
+    @media(max-width:900px){.role-grid{grid-template-columns:1fr}.portal-center{grid-template-columns:1fr}.portal-title{font-size:2rem}}
+    @media(max-width:600px){.auth-glass{padding:28px 20px}.role-card{padding:24px 20px}.field-row{grid-template-columns:1fr}}
+
+    /* ── Entrance animations ── */
+    .fade-up{animation:fadeUp .6s ease forwards}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    .delay-1{animation-delay:.1s;opacity:0}
+    .delay-2{animation-delay:.2s;opacity:0}
+    .delay-3{animation-delay:.3s;opacity:0}
+    .delay-4{animation-delay:.4s;opacity:0}
+    .delay-5{animation-delay:.5s;opacity:0}
+
+    /* ── 3D tilt ── */
+    .tilt-card{transform-style:preserve-3d;transition:transform .4s ease}
+    .tilt-card .card-inner{transform:translateZ(10px)}
+
+    /* ── Layout two-column ── */
+    .portal-two-col{display:grid;grid-template-columns:1fr 420px;gap:32px;align-items:start}
+    @media(max-width:900px){.portal-two-col{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-canvas">
+  <div class="bg-gradient"></div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+  <div class="orb orb4"></div>
+  <div id="particles"></div>
+</div>
+
+<!-- Language Bar -->
+<div class="lang-bar">
+  <div class="lang-logo">
+    <span>🌾</span>
+    <div>
+      <div style="font-size:13px;font-weight:800;letter-spacing:.5px">JAY BHUTNATH AGRI</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.4);font-weight:500;letter-spacing:1px">AGRICULTURAL PORTAL</div>
+    </div>
+  </div>
+  <div class="lang-btns">
+    <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">🇮🇳 English</button>
+    <button class="lang-btn" id="btn-gu" onclick="setLanguage('gu')">🌾 ગુજરાતી</button>
+  </div>
+</div>
+
+<!-- Main -->
+<main class="main">
+  <div class="portal-center">
+
+    <!-- Header -->
+    <div class="portal-header fade-up">
+      <div class="portal-eyebrow"><i class="fas fa-shield-alt"></i> Secure Agricultural Portal</div>
+      <h1 class="portal-title">
+        <span class="line1" data-i18n="gateway.title1">Gujarat's Trusted</span>
+        <span class="line2" data-i18n="gateway.title2">Agri Management Platform</span>
+      </h1>
+      <p class="portal-sub" data-i18n="gateway.subtitle">Register or login to access live prices, place orders, and manage your agricultural business — completely secure.</p>
+    </div>
+
+    <div class="portal-two-col">
+      <!-- LEFT: Role cards -->
+      <div>
+        <!-- Step label -->
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px" class="fade-up delay-1">
+          <i class="fas fa-hand-pointer"></i> Step 1 — Choose your role
+        </div>
+
+        <div class="role-grid fade-up delay-2">
+          <!-- Farmer -->
+          <div class="role-card farmer tilt-card" id="card-farmer" onclick="selectRole('farmer')">
+            <div class="role-card-bg"></div>
+            <div class="selected-check">✓</div>
+            <div class="role-badge">Farmer</div>
+            <div class="role-icon">👨‍🌾</div>
+            <div class="role-title" data-i18n="role.farmer">Farmer</div>
+            <div class="role-subtitle" data-i18n="role.farmer_desc">Grow & sell your produce directly. Access best prices.</div>
+            <ul class="role-perks">
+              <li data-i18n="perk.live_prices">Live market prices</li>
+              <li data-i18n="perk.orders">Place purchase orders</li>
+              <li data-i18n="perk.doorstep">Doorstep pickup</li>
+            </ul>
+          </div>
+
+          <!-- Trader -->
+          <div class="role-card trader tilt-card" id="card-trader" onclick="selectRole('trader')">
+            <div class="role-card-bg"></div>
+            <div class="selected-check">✓</div>
+            <div class="role-badge">Trader</div>
+            <div class="role-icon">🏪</div>
+            <div class="role-title" data-i18n="role.trader">Trader / Merchant</div>
+            <div class="role-subtitle" data-i18n="role.trader_desc">Buy & sell in bulk. Wholesale access to all commodities.</div>
+            <ul class="role-perks">
+              <li data-i18n="perk.bulk">Bulk order discounts</li>
+              <li data-i18n="perk.prices">Wholesale prices</li>
+              <li data-i18n="perk.invoices">Digital invoices</li>
+            </ul>
+          </div>
+
+          <!-- Delivery -->
+          <div class="role-card delivery tilt-card" id="card-delivery" onclick="selectRole('delivery')">
+            <div class="role-card-bg"></div>
+            <div class="selected-check">✓</div>
+            <div class="role-badge">Driver</div>
+            <div class="role-icon">🚚</div>
+            <div class="role-title" data-i18n="role.delivery">Delivery Partner</div>
+            <div class="role-subtitle" data-i18n="role.delivery_desc">Manage and track your assigned deliveries.</div>
+            <ul class="role-perks">
+              <li data-i18n="perk.assignments">View assignments</li>
+              <li data-i18n="perk.track">Update delivery status</li>
+              <li data-i18n="perk.earnings">Track your routes</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Info strip -->
+        <div class="fade-up delay-3" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;display:flex;gap:24px;flex-wrap:wrap;margin-top:16px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.4)"><i class="fas fa-lock" style="color:#4ade80"></i> All access is verified by admin</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.4)"><i class="fas fa-bolt" style="color:#fbbf24"></i> Approval usually within 24 hours</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.4)"><i class="fas fa-mobile-alt" style="color:#60a5fa"></i> Login with phone + PIN</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Auth panel -->
+      <div class="auth-glass fade-up delay-4" id="authPanel">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px">
+          <i class="fas fa-arrow-right" id="stepIcon"></i> Step 2 — <span id="stepLabel">Register or Login</span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login"    onclick="switchTab('login')">Sign In</button>
+          <button class="auth-tab"         id="tab-register" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Role not selected notice -->
+        <div id="noRoleNotice" style="text-align:center;padding:32px 16px;color:rgba(255,255,255,.35)">
+          <div style="font-size:48px;margin-bottom:12px">👆</div>
+          <div style="font-weight:600;margin-bottom:6px">Select your role first</div>
+          <div style="font-size:13px">Choose Farmer, Trader or Delivery Partner from the left to get started</div>
+        </div>
+
+        <!-- Error alert -->
+        <div class="error-alert" id="authError"><i class="fas fa-exclamation-circle"></i><span id="authErrorText"></span></div>
+        <div class="pending-banner" id="pendingBanner">
+          <i class="fas fa-clock"></i> Your registration is pending admin approval. <a href="waiting.html" style="color:#fbbf24;font-weight:700">Check status →</a>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div class="auth-form" id="form-login">
+          <div class="field-group">
+            <label class="field-label">Mobile Number</label>
+            <div class="field-wrap">
+              <i class="fas fa-phone-alt field-icon"></i>
+              <input type="tel" class="field-input" id="loginPhone" placeholder="10-digit mobile" maxlength="10">
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">4-Digit PIN</label>
+            <div class="field-wrap">
+              <i class="fas fa-lock field-icon"></i>
+              <input type="password" class="field-input" id="loginPin" placeholder="Your secret PIN" maxlength="4">
+              <button type="button" class="field-eye" onclick="toggleVis('loginPin',this)"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+          <button class="btn-auth" id="loginBtn" onclick="doLogin()" style="background:linear-gradient(135deg,#16a34a,#15803d);color:white;box-shadow:0 8px 24px rgba(22,163,74,.3)">
+            <i class="fas fa-sign-in-alt"></i> Sign In
+          </button>
+          <div class="divider-text">or</div>
+          <div style="text-align:center;font-size:13px;color:rgba(255,255,255,.4)">
+            No account? <a href="#" onclick="switchTab('register');return false" style="color:#4ade80;font-weight:700">Register now →</a>
+          </div>
+        </div>
+
+        <!-- REGISTER FORM (dynamic based on role) -->
+        <div class="auth-form" id="form-register">
+          <!-- Common fields -->
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Full Name *</label>
+              <div class="field-wrap">
+                <i class="fas fa-user field-icon"></i>
+                <input type="text" class="field-input" id="regName" placeholder="Your full name">
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Mobile Number *</label>
+              <div class="field-wrap">
+                <i class="fas fa-phone-alt field-icon"></i>
+                <input type="tel" class="field-input" id="regPhone" placeholder="10-digit" maxlength="10">
+              </div>
+            </div>
+          </div>
+
+          <!-- Farmer/Trader extra -->
+          <div id="farmerFields">
+            <div class="field-row">
+              <div class="field-group">
+                <label class="field-label">Village / Town *</label>
+                <div class="field-wrap">
+                  <i class="fas fa-map-marker-alt field-icon"></i>
+                  <input type="text" class="field-input" id="regVillage" placeholder="Village name">
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">District</label>
+                <div class="field-wrap">
+                  <i class="fas fa-map field-icon"></i>
+                  <select class="field-input" id="regDistrict" style="padding-left:44px">
+                    <option>Kutch</option><option>Rajkot</option><option>Jamnagar</option><option>Junagadh</option><option>Morbi</option><option>Bhavnagar</option><option>Ahmedabad</option><option>Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trader extra -->
+          <div id="traderFields" style="display:none">
+            <div class="field-group">
+              <label class="field-label">Company / Business Name</label>
+              <div class="field-wrap">
+                <i class="fas fa-building field-icon"></i>
+                <input type="text" class="field-input" id="regCompany" placeholder="Your business name (optional)">
+              </div>
+            </div>
+          </div>
+
+          <!-- Delivery extra -->
+          <div id="deliveryRegFields" style="display:none">
+            <div class="field-group" style="background:rgba(234,88,12,.08);border:1px solid rgba(234,88,12,.2);border-radius:10px;padding:12px">
+              <div style="font-size:12px;color:#fb923c;display:flex;align-items:flex-start;gap:8px">
+                <i class="fas fa-info-circle" style="margin-top:2px"></i>
+                <div>Delivery partner accounts are <strong>created by admin</strong>. Please contact the office to get your login credentials. You cannot self-register as a delivery partner.</div>
+              </div>
+            </div>
+            <div style="text-align:center;margin-top:16px">
+              <a href="#" onclick="switchTab('login');return false" class="btn-auth btn-delivery" style="text-decoration:none;display:inline-flex;width:auto;padding:12px 28px">
+                <i class="fas fa-sign-in-alt"></i> Already have login? Sign in
+              </a>
+            </div>
+          </div>
+
+          <!-- PIN (only for farmer/trader) -->
+          <div id="pinSection">
+            <div class="field-row">
+              <div class="field-group">
+                <label class="field-label">Create 4-Digit PIN *</label>
+                <div class="field-wrap">
+                  <i class="fas fa-lock field-icon"></i>
+                  <input type="password" class="field-input" id="regPin" placeholder="Choose PIN" maxlength="4">
+                  <button type="button" class="field-eye" onclick="toggleVis('regPin',this)"><i class="fas fa-eye"></i></button>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Confirm PIN *</label>
+                <div class="field-wrap">
+                  <i class="fas fa-lock field-icon"></i>
+                  <input type="password" class="field-input" id="regPinConfirm" placeholder="Re-enter PIN" maxlength="4">
+                </div>
+              </div>
+            </div>
+            <div class="pin-hint"><i class="fas fa-shield-alt" style="margin-top:1px"></i> This 4-digit PIN is your password. Use it with your phone number to login. Do not share it.</div>
+          </div>
+
+          <button class="btn-auth" id="registerBtn" onclick="doRegister()" style="background:linear-gradient(135deg,#16a34a,#15803d);color:white;box-shadow:0 8px 24px rgba(22,163,74,.3);margin-top:16px">
+            <i class="fas fa-paper-plane"></i> Submit Registration
+          </button>
+          <div style="text-align:center;font-size:12px;color:rgba(255,255,255,.3);margin-top:12px">
+            Already registered? <a href="#" onclick="switchTab('login');return false" style="color:#4ade80;font-weight:700">Sign in →</a>
+          </div>
+        </div>
+
+        <div class="admin-entry">
+          <a href="admin.html" class="admin-link"><i class="fas fa-lock"></i> Administrator Access</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Status chip -->
+<div class="status-chip"><div class="status-dot"></div> Portal Active</div>
+
+<script>
+const API = window.API_BASE || 'http://localhost:3001/api';
+let selectedRole = null;
+
+/* ── Particles ── */
+(function spawnParticles(){
+  const emojis = ['🌾','🌱','🌻','🥜','🍃','✨','🌿'];
+  const container = document.getElementById('particles');
+  for(let i=0;i<18;i++){
+    const p = document.createElement('div');
+    p.className='particle';
+    p.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    p.style.cssText=`left:${Math.random()*100}%;animation-duration:${12+Math.random()*18}s;animation-delay:${-Math.random()*20}s;font-size:${10+Math.random()*14}px`;
+    container.appendChild(p);
+  }
+})();
+
+/* ── 3D tilt on mouse ── */
+document.querySelectorAll('.tilt-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    if(card.classList.contains('selected'))return;
+    const r=card.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform=`perspective(800px) rotateY(${x*16}deg) rotateX(${-y*16}deg) translateY(-4px)`;
+  });
+  card.addEventListener('mouseleave',()=>{ card.style.transform=''; });
+});
+
+/* ── Role selection ── */
+function selectRole(role){
+  selectedRole=role;
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('card-'+role).classList.add('selected');
+
+  // Update auth panel
+  document.getElementById('noRoleNotice').style.display='none';
+  document.getElementById('form-login').classList.add('active');
+  document.getElementById('tab-login').classList.add('active');
+  document.getElementById('tab-register').classList.remove('active');
+  document.getElementById('form-register').classList.remove('active');
+
+  updateRoleUI(role);
+  switchTab('login');
+}
+
+function updateRoleUI(role){
+  const colors={farmer:'#16a34a',trader:'#2563eb',delivery:'#ea580c'};
+  const btnLogin=document.getElementById('loginBtn');
+  const btnReg=document.getElementById('registerBtn');
+  const color=colors[role]||'#16a34a';
+  btnLogin.style.background=`linear-gradient(135deg,${color},${color}cc)`;
+  btnLogin.style.boxShadow=`0 8px 24px ${color}55`;
+  btnReg.style.background=`linear-gradient(135deg,${color},${color}cc)`;
+  btnReg.style.boxShadow=`0 8px 24px ${color}55`;
+
+  const labels={farmer:'Farmer Portal',trader:'Trader Portal',delivery:'Delivery Portal'};
+  document.getElementById('stepLabel').textContent=labels[role]||'';
+
+  // Show/hide delivery-specific fields
+  const isDelivery=role==='delivery';
+  document.getElementById('farmerFields').style.display=isDelivery?'none':'block';
+  document.getElementById('traderFields').style.display=role==='trader'?'block':'none';
+  document.getElementById('deliveryRegFields').style.display=isDelivery?'block':'none';
+  document.getElementById('pinSection').style.display=isDelivery?'none':'block';
+  document.getElementById('registerBtn').style.display=isDelivery?'none':'flex';
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('form-'+tab).classList.add('active');
+  hideError();
+}
+
+/* ── Login ── */
+async function doLogin(){
+  const phone=document.getElementById('loginPhone').value.trim();
+  const pin=document.getElementById('loginPin').value.trim();
+  if(!/^\d{10}$/.test(phone))return showError('Enter a valid 10-digit mobile number');
+  if(!/^\d{4}$/.test(pin))return showError('PIN must be 4 digits');
+
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Signing in...';
+  hideError();
+
+  try{
+    const res=await fetch(API+'/auth/user-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,pin})});
+    const data=await res.json();
+
+    if(data.success){
+      const session={token:data.token,user:data.user};
+      localStorage.setItem('agriSession',JSON.stringify(session));
+      localStorage.removeItem('farmerSession');
+      localStorage.removeItem('deliverySession');
+      // Redirect based on role
+      const role=data.user?.role;
+      if(role==='delivery') window.location.href='dashboard.html';
+      else window.location.href='products.html';
+    }else if(data.message==='PENDING'){
+      localStorage.setItem('pendingFarmer',JSON.stringify({name:data.user?.name,phone}));
+      document.getElementById('pendingBanner').style.display='block';
+    }else if(data.message==='REJECTED'){
+      showError('Your registration was not approved. Please register again or contact admin.');
+    }else{
+      showError(data.message||'Login failed. Check your phone and PIN.');
+    }
+  }catch(e){showError('Could not connect to server. Is backend running?');}
+  btn.disabled=false;
+  btn.innerHTML='<i class="fas fa-sign-in-alt"></i> Sign In';
+}
+
+/* ── Register ── */
+async function doRegister(){
+  if(!selectedRole||selectedRole==='delivery')return;
+  const name=document.getElementById('regName').value.trim();
+  const phone=document.getElementById('regPhone').value.trim();
+  const pin=document.getElementById('regPin').value.trim();
+  const pinC=document.getElementById('regPinConfirm').value.trim();
+  const village=document.getElementById('regVillage')?.value?.trim();
+  const district=document.getElementById('regDistrict')?.value;
+
+  if(!name)return showError('Please enter your full name');
+  if(!/^\d{10}$/.test(phone))return showError('Enter a valid 10-digit mobile number');
+  if(!/^\d{4}$/.test(pin))return showError('PIN must be exactly 4 digits');
+  if(pin!==pinC)return showError('PINs do not match');
+  if(!village&&selectedRole!=='trader')return showError('Please enter your village/town');
+
+  const btn=document.getElementById('registerBtn');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Submitting...';
+  hideError();
+
+  const payload={name,phone,pin,role:selectedRole,village:village||'',district:district||'Kutch',state:'Gujarat'};
+  if(selectedRole==='trader') payload.company_name=document.getElementById('regCompany')?.value?.trim()||'';
+
+  try{
+    const res=await fetch(API+'/farmers/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    if(data.success){
+      localStorage.setItem('pendingFarmer',JSON.stringify({name:data.data.name,phone,role:selectedRole,id:data.data.farmer_id}));
+      window.location.href='waiting.html';
+    }else{
+      showError(data.message||'Registration failed. Please try again.');
+    }
+  }catch(e){showError('Could not connect to server.');}
+  btn.disabled=false;
+  btn.innerHTML='<i class="fas fa-paper-plane"></i> Submit Registration';
+}
+
+function showError(msg){const el=document.getElementById('authError');document.getElementById('authErrorText').textContent=msg;el.style.display='flex';}
+function hideError(){document.getElementById('authError').style.display='none';document.getElementById('pendingBanner').style.display='none';}
+function toggleVis(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.querySelector('i').className='fas fa-'+(i.type==='password'?'eye':'eye-slash');}
+
+// Digit-only inputs
+['loginPhone','regPhone','loginPin','regPin','regPinConfirm'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,''));
+});
+
+// Enter key to login
+document.addEventListener('keydown',e=>{if(e.key==='Enter'){const af=document.querySelector('.auth-form.active');if(af?.id==='form-login')doLogin();else if(af?.id==='form-register')doRegister();}});
+
+// Check if already logged in
+(function(){
+  try{
+    const s=JSON.parse(localStorage.getItem('agriSession')||'null');
+    if(s&&s.token){
+      const p=JSON.parse(atob(s.token.split('.')[1]));
+      if(p.exp*1000>Date.now()){
+        if(s.user?.role==='delivery')window.location.href='dashboard.html';
+        else if(['farmer','trader'].includes(s.user?.role))window.location.href='products.html';
+      }
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

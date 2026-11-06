@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Prices — Jay Bhutnath Agri Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="translations.js"></script>
+  <script src="server-check.js"></script>
+  <style>
+    body{background:#f0fdf4;padding-top:56px}
+    .portal-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:linear-gradient(135deg,#0a1f0a,#14532d);border-bottom:1px solid rgba(255,255,255,.08);height:56px;display:flex;align-items:center;padding:0 24px;gap:20px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+    .pnav-logo{color:white;font-weight:800;font-size:14px;text-decoration:none;display:flex;align-items:center;gap:8px}
+    .pnav-links{display:flex;gap:4px;flex:1;margin-left:16px}
+    .pnav-link{color:rgba(255,255,255,.6);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;transition:.2s}
+    .pnav-link:hover,.pnav-link.active{background:rgba(255,255,255,.12);color:white}
+    .pnav-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .pnav-user{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 12px 5px 8px}
+    .pnav-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white}
+    .pnav-username{font-size:13px;font-weight:700;color:white}
+    .btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif}
+    .ltbtn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif}
+    .ltbtn.active{background:rgba(255,255,255,.2);color:white}
+    .page-header{background:linear-gradient(135deg,#0a1f0a,#14532d);padding:40px 24px;color:white;text-align:center}
+    .page-header h1{font-size:2rem;font-weight:900;margin-bottom:6px}
+    .page-header p{color:rgba(255,255,255,.6);font-size:14px}
+    .date-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;font-size:12px;margin-top:12px}
+    .main-content{max-width:1100px;margin:32px auto;padding:0 24px}
+    .prices-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+
+    /* 3D Price card */
+    .price-card{background:white;border-radius:18px;padding:24px;box-shadow:0 4px 16px rgba(0,0,0,.07);border:1.5px solid #f3f4f6;transition:all .35s cubic-bezier(.25,.46,.45,.94);cursor:default;position:relative;overflow:hidden;transform-style:preserve-3d}
+    .price-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top right,var(--accent-color,#16a34a),transparent 60%);opacity:.04;transition:opacity .3s}
+    .price-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.12);transform:translateY(-5px);border-color:var(--accent-color,#16a34a);opacity:.15}
+    .price-card:hover::before{opacity:.08}
+    .pc-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .pc-emoji{font-size:40px;line-height:1}
+    .pc-names{flex:1}
+    .pc-name{font-size:1rem;font-weight:800;color:#14532d}
+    .pc-name-gu{font-size:12px;color:#16a34a;font-weight:600}
+    .pc-market{font-size:11px;color:#9ca3af;margin-top:4px}
+    .pc-price{text-align:right}
+    .pc-price .main-price{font-size:1.6rem;font-weight:900;color:#14532d;display:block}
+    .pc-price .unit{font-size:12px;color:#9ca3af}
+    .pc-change{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;margin-top:10px}
+    .pc-change.up{background:#dcfce7;color:#15803d}
+    .pc-change.down{background:#fee2e2;color:#dc2626}
+    .pc-change.neutral{background:#f3f4f6;color:#6b7280}
+    .pc-sparkline{height:40px;background:linear-gradient(to right,rgba(22,163,74,.05),rgba(22,163,74,.15));border-radius:8px;margin-top:12px;display:flex;align-items:flex-end;padding:4px 8px;gap:4px;overflow:hidden}
+    .spark-bar{flex:1;background:#16a34a;border-radius:2px;opacity:.6;transition:.3s}
+    .mandi-info{background:#f8fafc;border-radius:10px;padding:12px;display:flex;gap:12px;margin-top:12px;align-items:center;font-size:12px;color:#6b7280}
+    .last-updated{font-size:11px;color:#d1d5db;text-align:center;margin-top:24px}
+  </style>
+</head>
+<body>
+<script>
+  const _session = requireAuth(['farmer','trader']);
+  if (!_session) throw new Error('redirect');
+  window._currentSession = _session;
+</script>
+
+<nav class="portal-nav">
+  <a href="products.html" class="pnav-logo"><span>🌾</span> JAY BHUTNATH AGRI</a>
+  <div class="pnav-links">
+    <a href="products.html" class="pnav-link"><i class="fas fa-seedling"></i> Products</a>
+    <a href="prices.html"   class="pnav-link active"><i class="fas fa-chart-line"></i> Market Prices</a>
+    <a href="order.html"    class="pnav-link"><i class="fas fa-shopping-cart"></i> Place Order</a>
+    <a href="token.html"    class="pnav-link"><i class="fas fa-ticket-alt"></i> Token</a>
+  </div>
+  <div class="pnav-right">
+    <button class="ltbtn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+    <button class="ltbtn" id="btn-gu" onclick="setLanguage('gu')">ગુ</button>
+    <div class="pnav-user">
+      <div class="pnav-avatar" id="navAv">?</div>
+      <span class="pnav-username" id="navNm">…</span>
+    </div>
+    <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>📈 Live Market Prices</h1>
+  <p data-i18n="prices.subtitle">Real-time agricultural commodity prices — Mandvi Mandi, Kutch</p>
+  <div class="date-chip"><i class="fas fa-calendar-alt"></i> <span id="todayDate"></span> · Updated regularly</div>
+</div>
+
+<div class="main-content">
+  <div class="prices-grid" id="pricesGrid">
+    <div style="text-align:center;padding:40px;color:#9ca3af;grid-column:1/-1"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#16a34a"></i></div>
+  </div>
+  <div class="last-updated" id="lastUpdated"></div>
+</div>
+
+<script>
+const API = window.API_BASE || 'http://localhost:3001/api';
+const session = window._currentSession;
+const emojis  = {'Lokwan Wheat':'🌾','Wheat Flour':'🫓','Castor Seeds':'🌻','Groundnuts':'🥜','Cattle Feed':'🐄','Sesame Seeds':'🌱'};
+
+document.getElementById('navNm').textContent = session?.user?.name || '';
+document.getElementById('navAv').textContent = (session?.user?.name||'?').charAt(0).toUpperCase();
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+async function loadPrices() {
+  const grid = document.getElementById('pricesGrid');
+  try {
+    const r = await fetch(API + '/prices', { headers: {'Authorization':'Bearer '+session.token} });
+    const d = await r.json();
+    const prices = d.data || [];
+    if (!prices.length) { grid.innerHTML = '<div style="text-align:center;padding:60px;color:#9ca3af;grid-column:1/-1">No price data available</div>'; return; }
+
+    grid.innerHTML = prices.map(p => {
+      const change  = p.change_amount || 0;
+      const dir     = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
+      const icon    = change > 0 ? '▲' : change < 0 ? '▼' : '—';
+      const emoji   = emojis[p.product_name] || '🌾';
+      const accent  = dir === 'up' ? '#16a34a' : dir === 'down' ? '#dc2626' : '#6b7280';
+      const sparkBars = Array.from({length:7},(_,i)=>{ const h=Math.max(15,Math.random()*80); return `<div class="spark-bar" style="height:${h}%;background:${accent}"></div>`; }).join('');
+      return `
+        <div class="price-card" style="--accent-color:${accent}" onmousemove="tilt3d(this,event)" onmouseleave="untilt(this)">
+          <div class="pc-header">
+            <div class="pc-emoji">${emoji}</div>
+            <div class="pc-names">
+              <div class="pc-name">${p.product_name}</div>
+              <div class="pc-name-gu">${p.product_name_gu||''}</div>
+              <div class="pc-market"><i class="fas fa-map-marker-alt"></i> ${p.market||'Mandvi Mandi'}</div>
+            </div>
+            <div class="pc-price">
+              <span class="main-price">₹${(p.price_per_quintal||0).toLocaleString('en-IN')}</span>
+              <span class="unit">/ quintal</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="pc-change ${dir}">${icon} ₹${Math.abs(change)} ${dir==='up'?'higher':'lower'} than yesterday</span>
+            <span style="font-size:12px;color:#9ca3af">₹${((p.price_per_quintal||0)/100).toFixed(0)}/kg</span>
+          </div>
+          <div class="pc-sparkline">${sparkBars}</div>
+        </div>`;
+    }).join('');
+    document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleTimeString('en-IN');
+  } catch(e) {
+    grid.innerHTML = `<div style="text-align:center;padding:40px;color:#dc2626;grid-column:1/-1"><i class="fas fa-exclamation-circle" style="font-size:32px;margin-bottom:12px;display:block"></i>Could not load prices. Is backend running?</div>`;
+  }
+}
+
+function tilt3d(el, e) {
+  const r = el.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width - .5;
+  const y = (e.clientY - r.top) / r.height - .5;
+  el.style.transform = `translateY(-5px) perspective(700px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
+}
+function untilt(el) { el.style.transform = ''; }
+
+loadPrices();
+</script>
+</body>
+</html>

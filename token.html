@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Queue — Jay Bhutnath Agri Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="translations.js"></script>
+  <script src="server-check.js"></script>
+  <style>
+    body{background:#f0fdf4;padding-top:56px}
+    .portal-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:linear-gradient(135deg,#0a1f0a,#14532d);border-bottom:1px solid rgba(255,255,255,.08);height:56px;display:flex;align-items:center;padding:0 24px;gap:20px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+    .pnav-logo{color:white;font-weight:800;font-size:14px;text-decoration:none;display:flex;align-items:center;gap:8px}
+    .pnav-links{display:flex;gap:4px;flex:1;margin-left:16px}
+    .pnav-link{color:rgba(255,255,255,.6);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;transition:.2s}
+    .pnav-link:hover,.pnav-link.active{background:rgba(255,255,255,.12);color:white}
+    .pnav-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .pnav-user{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 12px 5px 8px}
+    .pnav-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white}
+    .pnav-username{font-size:13px;font-weight:700;color:white}
+    .btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif}
+    .ltbtn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif}
+    .ltbtn.active{background:rgba(255,255,255,.2);color:white}
+
+    .page-header{background:linear-gradient(135deg,#0a1f0a,#14532d);padding:40px 24px;color:white;text-align:center}
+    .page-header h1{font-size:2rem;font-weight:900;margin-bottom:6px}
+    .page-header p{color:rgba(255,255,255,.6);font-size:14px}
+    .main-content{max-width:720px;margin:32px auto;padding:0 24px}
+
+    /* Token card */
+    .token-wrap{background:white;border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,.08);overflow:hidden;margin-bottom:24px;transform-style:preserve-3d}
+    .token-header{background:linear-gradient(135deg,#f0fdf4,#dcfce7);padding:24px 28px;border-bottom:1px solid #d1fae5}
+    .token-header h2{font-size:1.2rem;font-weight:800;color:#14532d}
+    .token-header p{font-size:13px;color:#16a34a;margin-top:2px}
+    .token-body{padding:28px}
+    .token-display{text-align:center;padding:32px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:16px;margin-bottom:24px;display:none}
+    .token-num{font-size:72px;font-weight:900;color:#14532d;line-height:1;display:block}
+    .token-subtitle{font-size:14px;color:#16a34a;margin-top:8px;font-weight:600}
+    .token-time{font-size:12px;color:#9ca3af;margin-top:4px}
+
+    .field-group{margin-bottom:16px}
+    .field-label{display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px}
+    .field-input{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;font-family:Poppins,sans-serif;color:#111827;outline:none;transition:.3s}
+    .field-input:focus{border-color:#16a34a;box-shadow:0 0 0 4px rgba(22,163,74,.08)}
+    .field-input.readonly{background:#f9fafb;color:#6b7280}
+    .btn-token{width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#15803d);color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(22,163,74,.3);transition:.2s}
+    .btn-token:hover{transform:translateY(-2px)}
+    .btn-token:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+    /* Queue card */
+    .queue-card{background:white;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,.06);padding:24px;transform-style:preserve-3d}
+    .queue-card h3{font-size:14px;font-weight:800;color:#14532d;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .queue-entry{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f3f4f6}
+    .queue-entry:last-child{border:none}
+    .q-num{width:40px;height:40px;background:#f0fdf4;border:2px solid #d1fae5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#14532d;flex-shrink:0}
+    .q-num.current{background:#16a34a;border-color:#16a34a;color:white;box-shadow:0 4px 12px rgba(22,163,74,.3)}
+    .q-name{font-size:14px;font-weight:700;color:#111827}
+    .q-purpose{font-size:12px;color:#9ca3af;margin-top:2px}
+    .q-badge{margin-left:auto;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px}
+    .q-waiting{background:#fef9c3;color:#92400e}
+    .q-serving{background:#dcfce7;color:#15803d}
+    .q-served{background:#f3f4f6;color:#6b7280}
+    @media(max-width:600px){.main-content{padding:0 16px}.token-body{padding:20px}}
+  </style>
+</head>
+<body>
+<script>
+  const _session = requireAuth(['farmer','trader']);
+  if (!_session) throw new Error('redirect');
+  window._currentSession = _session;
+</script>
+
+<nav class="portal-nav">
+  <a href="products.html" class="pnav-logo"><span>🌾</span> JAY BHUTNATH AGRI</a>
+  <div class="pnav-links">
+    <a href="products.html" class="pnav-link"><i class="fas fa-seedling"></i> Products</a>
+    <a href="prices.html"   class="pnav-link"><i class="fas fa-chart-line"></i> Market Prices</a>
+    <a href="order.html"    class="pnav-link"><i class="fas fa-shopping-cart"></i> Place Order</a>
+    <a href="token.html"    class="pnav-link active"><i class="fas fa-ticket-alt"></i> Token</a>
+  </div>
+  <div class="pnav-right">
+    <button class="ltbtn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+    <button class="ltbtn" id="btn-gu" onclick="setLanguage('gu')">ગુ</button>
+    <div class="pnav-user">
+      <div class="pnav-avatar" id="navAv">?</div>
+      <span class="pnav-username" id="navNm">…</span>
+    </div>
+    <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>🎫 Token Queue System</h1>
+  <p>Take a token and wait for your turn — no need to wait in line</p>
+</div>
+
+<div class="main-content">
+  <!-- Get Token -->
+  <div class="token-wrap">
+    <div class="token-header">
+      <h2>Get Your Token</h2>
+      <p>Tokens are assigned for today. Visit the office when your number is called.</p>
+    </div>
+    <div class="token-body">
+      <div class="token-display" id="tokenDisplay">
+        <span class="token-num" id="tokenNum">—</span>
+        <div class="token-subtitle">Your Token Number</div>
+        <div class="token-time" id="tokenTime"></div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Your Name</label>
+        <input type="text" class="field-input readonly" id="tName" readonly>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Mobile Number</label>
+        <input type="tel" class="field-input readonly" id="tPhone" readonly>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Purpose</label>
+        <select class="field-input" id="tPurpose">
+          <option value="purchase">Purchase / Order</option>
+          <option value="inquiry">Price Inquiry</option>
+          <option value="payment">Payment</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <button class="btn-token" id="takeTokenBtn" onclick="getToken()"><i class="fas fa-ticket-alt"></i> Get My Token</button>
+    </div>
+  </div>
+
+  <!-- Today's queue -->
+  <div class="queue-card">
+    <h3><i class="fas fa-users" style="color:#16a34a"></i> Today's Queue <span id="queueCount" style="background:#dcfce7;color:#15803d;padding:2px 10px;border-radius:20px;font-size:12px">0</span></h3>
+    <div id="queueList"><div style="text-align:center;padding:24px;color:#9ca3af"><i class="fas fa-spinner fa-spin"></i></div></div>
+  </div>
+</div>
+
+<script>
+const API = window.API_BASE || 'http://localhost:3001/api';
+const session = window._currentSession;
+const user = session?.user || {};
+document.getElementById('navNm').textContent  = user.name  || '';
+document.getElementById('navAv').textContent  = (user.name||'?').charAt(0).toUpperCase();
+document.getElementById('tName').value        = user.name  || '';
+document.getElementById('tPhone').value       = user.phone || '';
+
+async function getToken() {
+  const btn = document.getElementById('takeTokenBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Token...';
+  try {
+    const r = await fetch(API + '/tokens', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+      body: JSON.stringify({ customer_name: user.name, customer_phone: user.phone, purpose: document.getElementById('tPurpose').value })
+    });
+    const d = await r.json();
+    if (d.success) {
+      document.getElementById('tokenNum').textContent = d.data?.token_number || '—';
+      document.getElementById('tokenTime').textContent = 'Issued at ' + new Date().toLocaleTimeString('en-IN');
+      document.getElementById('tokenDisplay').style.display = 'block';
+      btn.innerHTML = '<i class="fas fa-check"></i> Token Issued!';
+      loadQueue();
+    } else { alert(d.message || 'Could not get token'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-ticket-alt"></i> Get My Token'; }
+  } catch(e) { alert('Network error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-ticket-alt"></i> Get My Token'; }
+}
+
+async function loadQueue() {
+  try {
+    const r = await fetch(API + '/tokens?date=today', { headers: {'Authorization':'Bearer '+session.token} });
+    const d = await r.json();
+    const tokens = (d.data || []).sort((a,b)=>a.token_number-b.token_number);
+    document.getElementById('queueCount').textContent = tokens.length;
+    const statusBadge = s => ({ waiting:'<span class="q-badge q-waiting">⏳ Waiting</span>', serving:'<span class="q-badge q-serving">✅ Now Serving</span>', served:'<span class="q-badge q-served">Done</span>' }[s]||'');
+    document.getElementById('queueList').innerHTML = tokens.length
+      ? tokens.map(t=>`<div class="queue-entry"><div class="q-num${t.status==='serving'?' current':''}">T${t.token_number}</div><div><div class="q-name">${t.customer_name}</div><div class="q-purpose">${t.purpose||'Visit'}</div></div>${statusBadge(t.status)}</div>`).join('')
+      : '<div style="text-align:center;padding:24px;color:#9ca3af">No tokens today yet</div>';
+  } catch {}
+}
+
+loadQueue();
+</script>
+</body>
+</html>

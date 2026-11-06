@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "created_at": "2026-09-20T10:13:17.249Z",
+    "updated_at": "2026-09-20T10:13:17.265Z",
+    "order_id": 1,
+    "driver_name": "Test Driver",
+    "driver_phone": "9777888999",
+    "vehicle_number": "GJ-11-Z-9999",
+    "pickup_address": "Jay Bhutnath Agri, Mandvi",
+    "delivery_address": "Mandvi, Kutch 370465",
+    "status": "delivered",
+    "assigned_at": "2026-09-20T10:13:17.249Z",
+    "notes": "Test delivery",
+    "delivered_at": "2026-09-20T10:13:17.263Z"
+  },
+  {
+    "id": 2,
+    "created_at": "2026-09-25T09:10:01.968Z",
+    "updated_at": "2026-09-25T12:30:50.015Z",
+    "order_id": 2,
+    "driver_name": "Test Driver",
+    "driver_phone": "9777888999",
+    "vehicle_number": "GJ-11-Z-9999",
+    "pickup_address": "Jay Bhutnath Agri, Mandvi",
+    "delivery_address": "Mandvi, Kutch 370465",
+    "status": "failed",
+    "assigned_at": "2026-09-25T09:10:01.967Z",
+    "notes": "Test delivery",
+    "delivered_at": "2026-09-25T09:10:01.983Z"
+  }
+]

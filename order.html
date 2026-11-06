@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Place Order — Jay Bhutnath Agri Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="translations.js"></script>
+  <script src="server-check.js"></script>
+  <style>
+    body{background:#f0fdf4;padding-top:56px}
+    .portal-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:linear-gradient(135deg,#0a1f0a,#14532d);border-bottom:1px solid rgba(255,255,255,.08);height:56px;display:flex;align-items:center;padding:0 24px;gap:20px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+    .pnav-logo{color:white;font-weight:800;font-size:14px;text-decoration:none;display:flex;align-items:center;gap:8px}
+    .pnav-links{display:flex;gap:4px;flex:1;margin-left:16px}
+    .pnav-link{color:rgba(255,255,255,.6);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;transition:.2s}
+    .pnav-link:hover,.pnav-link.active{background:rgba(255,255,255,.12);color:white}
+    .pnav-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .pnav-user{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 12px 5px 8px}
+    .pnav-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white}
+    .pnav-username{font-size:13px;font-weight:700;color:white}
+    .btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif}
+    .ltbtn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif}
+    .ltbtn.active{background:rgba(255,255,255,.2);color:white}
+
+    .page-header{background:linear-gradient(135deg,#0a1f0a,#14532d);padding:40px 24px;color:white;text-align:center}
+    .page-header h1{font-size:2rem;font-weight:900;margin-bottom:6px}
+    .page-header p{color:rgba(255,255,255,.6);font-size:14px}
+    .main-content{max-width:860px;margin:32px auto;padding:0 24px}
+
+    /* 3D Form card */
+    .order-card{background:white;border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,.1);overflow:hidden;transform-style:preserve-3d}
+    .order-card-header{background:linear-gradient(135deg,#f0fdf4,#dcfce7);padding:28px 32px 20px;border-bottom:1px solid #d1fae5}
+    .order-card-header h2{font-size:1.3rem;font-weight:800;color:#14532d;margin-bottom:4px}
+    .order-card-header p{font-size:13px;color:#16a34a}
+    .order-card-body{padding:32px}
+    .form-section{margin-bottom:28px}
+    .form-section-title{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid #f3f4f6}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .field-group{margin-bottom:4px}
+    .field-label{display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:7px}
+    .field-req{color:#dc2626}
+    .field-input{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;font-family:Poppins,sans-serif;color:#111827;outline:none;transition:.3s;background:white}
+    .field-input:focus{border-color:#16a34a;box-shadow:0 0 0 4px rgba(22,163,74,.08)}
+    .field-input.readonly-field{background:#f9fafb;color:#6b7280}
+    select.field-input{cursor:pointer}
+
+    /* Product selector */
+    .product-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:4px}
+    .prod-select-card{border:2px solid #e5e7eb;border-radius:14px;padding:14px;cursor:pointer;transition:all .25s;text-align:center;background:white;position:relative}
+    .prod-select-card:hover{border-color:#16a34a;box-shadow:0 4px 16px rgba(22,163,74,.12);transform:translateY(-2px)}
+    .prod-select-card.selected{border-color:#16a34a;background:#f0fdf4;box-shadow:0 4px 16px rgba(22,163,74,.2)}
+    .prod-select-card .emoji{font-size:32px;display:block;margin-bottom:8px}
+    .prod-select-card .pname{font-size:12px;font-weight:700;color:#14532d}
+    .prod-select-card .pprice{font-size:11px;color:#16a34a;font-weight:600;margin-top:3px}
+    .prod-select-card .pcheck{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:#16a34a;display:none;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:800}
+    .prod-select-card.selected .pcheck{display:flex}
+
+    /* Order summary */
+    .order-summary{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #d1fae5;border-radius:16px;padding:20px 24px;margin-bottom:24px}
+    .order-summary h3{font-size:14px;font-weight:800;color:#14532d;margin-bottom:12px}
+    .summary-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(22,163,74,.1)}
+    .summary-row:last-child{border:none;padding-top:10px;font-size:1rem;font-weight:900;color:#14532d}
+    .summary-label{font-size:13px;color:#6b7280}
+    .summary-val{font-size:13px;font-weight:700;color:#111827}
+
+    .btn-submit{width:100%;padding:15px;background:linear-gradient(135deg,#16a34a,#15803d);color:white;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .3s;box-shadow:0 8px 24px rgba(22,163,74,.3)}
+    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(22,163,74,.4)}
+    .btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .success-state{text-align:center;padding:48px 32px;display:none}
+    .success-state .check{font-size:64px;margin-bottom:16px}
+    .success-state h3{font-size:1.4rem;font-weight:900;color:#14532d;margin-bottom:8px}
+    .success-state p{color:#6b7280;font-size:14px;margin-bottom:24px}
+    .btn-new{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:#16a34a;color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;text-decoration:none}
+    @media(max-width:600px){.field-row{grid-template-columns:1fr}.product-list{grid-template-columns:1fr 1fr}.order-card-body{padding:20px}}
+  </style>
+</head>
+<body>
+<script>
+  const _session = requireAuth(['farmer','trader']);
+  if (!_session) throw new Error('redirect');
+  window._currentSession = _session;
+</script>
+
+<nav class="portal-nav">
+  <a href="products.html" class="pnav-logo"><span>🌾</span> JAY BHUTNATH AGRI</a>
+  <div class="pnav-links">
+    <a href="products.html" class="pnav-link"><i class="fas fa-seedling"></i> Products</a>
+    <a href="prices.html"   class="pnav-link"><i class="fas fa-chart-line"></i> Market Prices</a>
+    <a href="order.html"    class="pnav-link active"><i class="fas fa-shopping-cart"></i> Place Order</a>
+    <a href="token.html"    class="pnav-link"><i class="fas fa-ticket-alt"></i> Token</a>
+  </div>
+  <div class="pnav-right">
+    <button class="ltbtn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+    <button class="ltbtn" id="btn-gu" onclick="setLanguage('gu')">ગુ</button>
+    <div class="pnav-user">
+      <div class="pnav-avatar" id="navAv">?</div>
+      <span class="pnav-username" id="navNm">…</span>
+    </div>
+    <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>🛒 Place an Order</h1>
+  <p>Order fresh agricultural commodities — fast, reliable, door-to-door delivery</p>
+</div>
+
+<div class="main-content">
+  <div class="order-card">
+    <div class="order-card-header">
+      <h2>New Purchase Order</h2>
+      <p>Fill in the details below. We'll confirm and arrange delivery to your location.</p>
+    </div>
+    <div class="order-card-body">
+      <!-- Success state -->
+      <div class="success-state" id="successState">
+        <div class="check">✅</div>
+        <h3>Order Placed Successfully!</h3>
+        <p>Your order number is <strong id="successOrderNum"></strong>. We'll contact you shortly to confirm delivery.</p>
+        <a href="products.html" class="btn-new"><i class="fas fa-seedling"></i> Browse Products</a>&nbsp;
+        <button class="btn-new" onclick="resetForm()" style="background:#16a34a"><i class="fas fa-plus"></i> New Order</button>
+      </div>
+
+      <!-- Order form -->
+      <div id="orderForm">
+        <!-- Select Product -->
+        <div class="form-section">
+          <div class="form-section-title"><i class="fas fa-seedling" style="color:#16a34a"></i> Select Product <span class="field-req">*</span></div>
+          <div class="product-list" id="productList">
+            <div style="text-align:center;color:#9ca3af"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+
+        <!-- Customer info -->
+        <div class="form-section">
+          <div class="form-section-title"><i class="fas fa-user" style="color:#16a34a"></i> Your Details</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Full Name <span class="field-req">*</span></label>
+              <input type="text" class="field-input readonly-field" id="custName" readonly>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Mobile Number <span class="field-req">*</span></label>
+              <input type="tel" class="field-input readonly-field" id="custPhone" readonly>
+            </div>
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <label class="field-label">Delivery Address <span class="field-req">*</span></label>
+            <textarea class="field-input" id="custAddress" rows="2" placeholder="Village, Taluka, District — enter your complete address"></textarea>
+          </div>
+        </div>
+
+        <!-- Order details -->
+        <div class="form-section">
+          <div class="form-section-title"><i class="fas fa-box" style="color:#16a34a"></i> Order Details</div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Quantity (kg) <span class="field-req">*</span></label>
+              <input type="number" class="field-input" id="orderQty" min="1" placeholder="e.g. 100" oninput="calcTotal()">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Payment Method</label>
+              <select class="field-input" id="paymentMethod">
+                <option value="cash">💵 Cash on Delivery</option>
+                <option value="upi">📱 UPI (GPay/PhonePe)</option>
+                <option value="bank">🏦 Bank Transfer</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <label class="field-label">Delivery Notes (Optional)</label>
+            <textarea class="field-input" id="delivNotes" rows="2" placeholder="Landmark, timing preference, special instructions..."></textarea>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="order-summary" id="orderSummary" style="display:none">
+          <h3>📋 Order Summary</h3>
+          <div class="summary-row"><span class="summary-label">Product</span><span class="summary-val" id="sumProduct">—</span></div>
+          <div class="summary-row"><span class="summary-label">Quantity</span><span class="summary-val" id="sumQty">—</span></div>
+          <div class="summary-row"><span class="summary-label">Rate</span><span class="summary-val" id="sumRate">—</span></div>
+          <div class="summary-row"><span class="summary-label">Total Amount</span><span class="summary-val" style="color:#16a34a;font-size:1.1rem" id="sumTotal">—</span></div>
+        </div>
+
+        <button class="btn-submit" id="submitBtn" onclick="submitOrder()"><i class="fas fa-paper-plane"></i> Confirm Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.API_BASE || 'http://localhost:3001/api';
+const session = window._currentSession;
+const user = session?.user || {};
+let products = [];
+let selectedProduct = null;
+
+document.getElementById('navNm').textContent  = user.name  || '';
+document.getElementById('navAv').textContent  = (user.name||'?').charAt(0).toUpperCase();
+document.getElementById('custName').value     = user.name  || '';
+document.getElementById('custPhone').value    = user.phone || '';
+
+async function loadProducts() {
+  try {
+    const r = await fetch(API + '/products', { headers:{'Authorization':'Bearer '+session.token} });
+    const d = await r.json();
+    products = d.data || [];
+    const emojiMap = {Wheat:'🌾',Flour:'🫓','Oil Seeds':'🌻',Oilseed:'🌻',Feed:'🐄',Pulses:'🥜'};
+    // Pre-select from URL if any
+    const params = new URLSearchParams(window.location.search);
+    const preId  = Number(params.get('product_id'));
+    document.getElementById('productList').innerHTML = products.map(p => `
+      <div class="prod-select-card ${p.id===preId?'selected':''}" id="pcard-${p.id}" onclick="selectProduct(${p.id})">
+        <div class="pcheck">✓</div>
+        <span class="emoji">${p.image_emoji||emojiMap[p.category]||'🌾'}</span>
+        <div class="pname">${p.name}</div>
+        <div class="pprice">₹${p.price_per_kg}/kg</div>
+      </div>`).join('');
+    if (preId) selectProduct(preId, false);
+  } catch { document.getElementById('productList').innerHTML='<p style="color:#dc2626">Could not load products.</p>'; }
+}
+
+function selectProduct(id, scroll=true) {
+  selectedProduct = products.find(p => p.id === id);
+  document.querySelectorAll('.prod-select-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('pcard-'+id)?.classList.add('selected');
+  calcTotal();
+  if (scroll) document.getElementById('orderQty').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function calcTotal() {
+  if (!selectedProduct) return;
+  const qty = Number(document.getElementById('orderQty').value) || 0;
+  if (qty <= 0) { document.getElementById('orderSummary').style.display='none'; return; }
+  const total = qty * selectedProduct.price_per_kg;
+  document.getElementById('orderSummary').style.display='block';
+  document.getElementById('sumProduct').textContent = selectedProduct.name;
+  document.getElementById('sumQty').textContent     = qty + ' kg';
+  document.getElementById('sumRate').textContent    = '₹' + selectedProduct.price_per_kg + '/kg';
+  document.getElementById('sumTotal').textContent   = '₹' + total.toLocaleString('en-IN');
+}
+
+async function submitOrder() {
+  if (!selectedProduct) return alert('Please select a product');
+  const qty  = Number(document.getElementById('orderQty').value);
+  const addr = document.getElementById('custAddress').value.trim();
+  if (!qty || qty < 1) return alert('Enter a valid quantity');
+  if (!addr) return alert('Please enter your delivery address');
+  const btn = document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Placing Order...';
+  try {
+    const r = await fetch(API + '/orders', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+session.token},
+      body: JSON.stringify({
+        customer_name:    user.name,
+        customer_phone:   user.phone,
+        customer_address: addr,
+        customer_village: user.village || '',
+        product_id:       selectedProduct.id,
+        product_name:     selectedProduct.name,
+        quantity_kg:      qty,
+        total_amount:     qty * selectedProduct.price_per_kg,
+        payment_method:   document.getElementById('paymentMethod').value,
+        delivery_notes:   document.getElementById('delivNotes').value.trim(),
+      })
+    });
+    const d = await r.json();
+    if (d.success) {
+      document.getElementById('orderForm').style.display='none';
+      document.getElementById('successState').style.display='block';
+      document.getElementById('successOrderNum').textContent = d.data?.order_number || 'JB-ORDER';
+    } else { alert(d.message || 'Order failed'); }
+  } catch { alert('Network error. Please try again.'); }
+  btn.disabled=false;
+  btn.innerHTML='<i class="fas fa-paper-plane"></i> Confirm Order';
+}
+
+function resetForm() {
+  document.getElementById('orderForm').style.display='block';
+  document.getElementById('successState').style.display='none';
+  document.getElementById('orderQty').value='';
+  document.getElementById('custAddress').value='';
+  document.getElementById('delivNotes').value='';
+  document.getElementById('orderSummary').style.display='none';
+  document.querySelectorAll('.prod-select-card').forEach(c=>c.classList.remove('selected'));
+  selectedProduct=null;
+}
+
+loadProducts();
+</script>
+</body>
+</html>
