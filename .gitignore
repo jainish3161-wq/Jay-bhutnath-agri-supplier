@@ -1,0 +1,24 @@
+# Environment variables — NEVER upload this to GitHub or Vercel
+server/.env
+.env
+
+# Node dependencies — will be installed automatically
+node_modules/
+server/node_modules/
+
+# Server logs
+server/server.log
+*.log
+
+# Data files — optional: remove this if you want to seed initial data
+# server/data/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.code-workspace

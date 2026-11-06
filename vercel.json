@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "name": "jay-bhutnath-agri",
+  "builds": [
+    {
+      "src": "server/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "server/server.js" },
+    { "src": "/admin.html", "dest": "/admin.html" },
+    { "src": "/products.html", "dest": "/products.html" },
+    { "src": "/prices.html", "dest": "/prices.html" },
+    { "src": "/order.html", "dest": "/order.html" },
+    { "src": "/token.html", "dest": "/token.html" },
+    { "src": "/contact.html", "dest": "/contact.html" },
+    { "src": "/dashboard.html", "dest": "/dashboard.html" },
+    { "src": "/waiting.html", "dest": "/waiting.html" },
+    { "src": "/(.*\\.js)", "dest": "/$1" },
+    { "src": "/(.*\\.css)", "dest": "/$1" },
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

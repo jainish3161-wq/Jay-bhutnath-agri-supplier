@@ -232,9 +232,7 @@
     <p style="text-align:center;margin-top:20px;font-size:13px;color:#6b7280">
       <a href="index.html" style="color:#16a34a;font-weight:600"><i class="fas fa-arrow-left"></i> <span data-i18n="admin.back_to_site">Back to Website</span></a>
     </p>
-    <div style="margin-top:20px;padding:12px;background:#f0fdf4;border-radius:8px;font-size:12px;color:#374151;text-align:center">
-      <strong>Demo:</strong> username: <code>admin</code> / password: <code>admin123</code>
-    </div>
+
   </div>
 </div>
 
@@ -935,14 +933,7 @@ async function doLogin(e) {
       showLoginError(data.message || 'Invalid username or password.');
     }
   } catch (err) {
-    // Demo fallback when backend not running
-    if (username === 'admin' && password === 'admin123') {
-      adminToken = 'demo-token';
-      localStorage.setItem('adminToken', adminToken);
-      showAdminPanel();
-    } else {
-      showLoginError('Invalid username or password.');
-    }
+    showLoginError('Could not connect to server. Please ensure the backend is running.');
   }
   btn.disabled = false;
   btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Admin Panel';
